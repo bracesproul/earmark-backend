@@ -68,9 +68,9 @@ router.get('/', async (req:any, res:any, next:any) => {
         };
         try {
             const response = await client.authGet(request);
-            accounts.push(response.data.accounts);
-            numbers.push(response.data.numbers);
-            request_ids.push(response.data.request_id);
+            accounts.push(await response.data.accounts);
+            numbers.push(await response.data.numbers);
+            request_ids.push(await response.data.request_id);
         } catch (error) {
             await res.status(400);
             await res.send(error);
@@ -84,7 +84,7 @@ router.get('/', async (req:any, res:any, next:any) => {
         statusCode: 200,
         statusMessage: "Success",
         metaData: {
-            totalAccounts: accounts[0].length,
+            totalAccounts: accounts.length,
             user_id: user_id,
             requestTime: new Date().toLocaleString(),
             requestIds: request_ids,

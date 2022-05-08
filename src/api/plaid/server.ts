@@ -20,6 +20,7 @@ const transactions_get = require('./transactions/get');
 const categories_get = require('./transactions/categories');
 const accounts_get = require('./accounts/get');
 const auth_get = require('./auth/get');
+const identity_get = require('./identity/get');
 
 app.use('/', test);
 app.use('/api/plaid/link/token/create', link_token_create);
@@ -28,7 +29,7 @@ app.use('/api/plaid/transactions/get', transactions_get);
 app.use('/api/plaid/transactions/categories/get', categories_get);
 app.use('/api/plaid/accounts/get', accounts_get);
 app.use('/api/plaid/auth/get', auth_get);
-
+app.use('/api/plaid/identity/get', identity_get);
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
