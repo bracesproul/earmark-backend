@@ -1,16 +1,17 @@
 {
-  "name": "backend_new",
+  "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./dist/api/plaid/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon ./src/api/plaid/server.ts",
     "build": "tsc --build",
+    "start": "node ./src/api/plaid/server.js",
     "clean": "tsc --build --clean"
   },
   "keywords": [],
-  "author": "",
+  "author": "Brace Sproul",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.27.2",
@@ -20,13 +21,12 @@
     "firebase": "^9.7.0",
     "moment": "^2.29.3",
     "morgan": "^1.10.0",
-    "plaid": "^10.3.0",
-    "typescript": "^4.6.4"
+    "plaid": "^10.3.0"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",
     "nodemon": "^2.0.16",
     "ts-node": "^10.7.0",
-    "tsc": "^2.0.4"
+    "typescript": "^4.6.4"
   }
 }

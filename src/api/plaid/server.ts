@@ -10,22 +10,25 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
+
+
 // add routes
+const test = require('./test');
 const link_token_create = require('./link/token/create');
 const exchange_public_token = require('./item/public_token/exchange');
 const transactions_get = require('./transactions/get');
 const categories_get = require('./transactions/categories');
 const accounts_get = require('./accounts/get');
+const auth_get = require('./auth/get');
 
-const test = require('./test');
-
+app.use('/', test);
 app.use('/api/plaid/link/token/create', link_token_create);
 app.use('/api/plaid/item/public_token/exchange', exchange_public_token);
 app.use('/api/plaid/transactions/get', transactions_get);
 app.use('/api/plaid/transactions/categories/get', categories_get);
 app.use('/api/plaid/accounts/get', accounts_get);
+app.use('/api/plaid/auth/get', auth_get);
 
-app.use('/test', test);
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
