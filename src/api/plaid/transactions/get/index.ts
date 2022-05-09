@@ -49,64 +49,37 @@ const db = getFirestore(transactions_get_app);
 
 router.get('/', async (req:any, res:any, next:any) => {
   const user_id = req.query.user_id;
+  const accessToken = req.query.access_token;
   const startDate = req.query.startDate;
   const endDate = req.query.endDate
-
-  const q = query(collection(db, "users", user_id, "access_tokens"), where("user_id", "==", user_id));
-  let access_tokens = new Array();
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach((doc: any) => {
-      access_tokens.push(doc.data().access_token);
-  });
-
-  const txns = new Array();
-  const requestIds = new Array();
-  const accounts = new Array();
+  
+  let transactionsGet;
+  let requestId = new String();
   let totalTxns = new Number();
 
-  for (let i = 0; i < access_tokens.length; i++) {
-    /* @ts-ignore */
-    const request: TransactionsGetRequest = {
-      access_token: access_tokens[i],
-      start_date: startDate,
-      end_date: endDate,
-    };
-    try {
-    const response = await client.transactionsGet(request);
-    txns.push(response.data.transactions);
-    txns.map(txns => {
-      totalTxns += txns.length;
-    })
-    requestIds.push(response.data.request_id);
-    const accountsResponse = response.data.accounts;
-    const accountData = accountsResponse.map((acc:any) => {
-        return {
-            account_id: acc.account_id,
-            name: acc.name,
-            official_name: acc.official_name,
-            subtype: acc.subtype,
-            type: acc.type,
-            balances: acc.balances
-        }
-    });
-    accounts.push(accountData);
-  } catch (error) {
-    console.log(error)
-    res.status(400).send(error);
-    res.end();
-  }
-  }
+  /* @ts-ignore */
+  const request: TransactionsGetRequest = {
+    access_token: accessToken,
+    start_date: startDate,
+    end_date: endDate,
+  };
+
+  try {
+  const response = await client.transactionsGet(request);
+  transactionsGet = response.data;
+  response.data.transactions.map((txns:any) => {
+    totalTxns += txns.length;
+  })
+  requestId = response.data.request_id;
   const finalResponse = {
-    accounts: accounts,
-    transactions: txns,
+    transactions: transactionsGet,
     statusCode: 200,
     statusMessage: "Success",
     metaData: {
-        totalAccounts: accounts.length,
         totalTransactions: totalTxns,
         user_id: user_id,
         requestTime: new Date().toLocaleString(),
-        requestIds: requestIds,
+        requestIds: requestId,
         nextApiUrl: "/api/plaid/transactions/get",
         backendApiUrl: "/api/transactionsGet",
         method: "GET",
@@ -115,6 +88,13 @@ router.get('/', async (req:any, res:any, next:any) => {
   await res.status(200);
   await res.send(finalResponse);
   await res.end();
+  } catch (error) {
+  console.log(error)
+  res.status(400).send(error);
+  res.end();
+  }
+
+
 })
 
 module.exports = router;

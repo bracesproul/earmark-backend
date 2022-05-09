@@ -27,6 +27,7 @@ const liabilities_get = require('./liabilities/get');
 const institutions_get = require('./institutions/get');
 const institutions_get_by_id = require('./institutions/get_by_id');
 const institutions_search = require('./institutions/search');
+const item_get = require('./item/get');
 
 app.use('/', test);
 app.use('/api/plaid/link/token/create', link_token_create);
@@ -45,6 +46,8 @@ app.use('/api/plaid/institutions/get', institutions_get);
 app.use('/api/plaid/institutions/get_by_id', institutions_get_by_id);
 // TODO: FIX, BROKEN, UNSURE WHY
 app.use('/api/plaid/institutions/search', institutions_search);
+app.use('/api/plaid/item/get', item_get);
+
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));

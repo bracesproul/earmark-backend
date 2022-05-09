@@ -4,6 +4,7 @@ dotenv.config();
 
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 
 const { Configuration, PlaidApi, PlaidEnvironments, ItemPublicTokenExchangeRequest } = require("plaid");
 const { initializeApp } = require("firebase/app");
@@ -51,11 +52,26 @@ router.post('/', async (req: any, res: any, next: any) => {
     console.log('exchange token called');
     const response = await client.itemPublicTokenExchange(request);
     const accessToken = response.data.access_token;
+    console.log(response.data);
     const itemId = response.data.item_id;
     
     console.log('exchange token success', accessToken, itemId);
 
     await updateFirestore(userId, accessToken, itemId);
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      method: "GET",
+      url: `http://localhost:5000/api/plaid/item/get`,
+      params: {
+        user_id: userId,
+        access_token: accessToken,
+        itemId: itemId,
+      }
+    }
+    const axiosResponse = await axios(config);
+    console.log(axiosResponse.data);
     res.status(200).send("Successfully generated access token and updated firestore");
   } catch (error) {
     res.status(400).send(error);
