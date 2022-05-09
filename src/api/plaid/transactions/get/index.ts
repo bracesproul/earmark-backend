@@ -60,6 +60,10 @@ router.get('/', async (req:any, res:any, next:any) => {
   });
 
   const txns = new Array();
+  const requestIds = new Array();
+  const accounts = new Array();
+  let totalTxns = new Number();
+
   for (let i = 0; i < access_tokens.length; i++) {
     /* @ts-ignore */
     const request: TransactionsGetRequest = {
@@ -69,15 +73,47 @@ router.get('/', async (req:any, res:any, next:any) => {
     };
     try {
     const response = await client.transactionsGet(request);
-    txns.push(response.data);
+    txns.push(response.data.transactions);
+    txns.map(txns => {
+      totalTxns += txns.length;
+    })
+    requestIds.push(response.data.request_id);
+    const accountsResponse = response.data.accounts;
+    const accountData = accountsResponse.map((acc:any) => {
+        return {
+            account_id: acc.account_id,
+            name: acc.name,
+            official_name: acc.official_name,
+            subtype: acc.subtype,
+            type: acc.type,
+            balances: acc.balances
+        }
+    });
+    accounts.push(accountData);
   } catch (error) {
     console.log(error)
     res.status(400).send(error);
     res.end();
   }
   }
-  console.log(txns);
-  await res.status(200).send(txns);
+  const finalResponse = {
+    accounts: accounts,
+    transactions: txns,
+    statusCode: 200,
+    statusMessage: "Success",
+    metaData: {
+        totalAccounts: accounts.length,
+        totalTransactions: totalTxns,
+        user_id: user_id,
+        requestTime: new Date().toLocaleString(),
+        requestIds: requestIds,
+        nextApiUrl: "/api/plaid/transactions/get",
+        backendApiUrl: "/api/transactionsGet",
+        method: "GET",
+    },
+  };
+  await res.status(200);
+  await res.send(finalResponse);
   await res.end();
 })
 

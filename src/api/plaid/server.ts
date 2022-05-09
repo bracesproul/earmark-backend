@@ -21,6 +21,12 @@ const categories_get = require('./transactions/categories');
 const accounts_get = require('./accounts/get');
 const auth_get = require('./auth/get');
 const identity_get = require('./identity/get');
+const balance_get = require('./balance/get');
+const investments_holdings_get = require('./investments/holdings/get');
+const liabilities_get = require('./liabilities/get');
+const institutions_get = require('./institutions/get');
+const institutions_get_by_id = require('./institutions/get_by_id');
+const institutions_search = require('./institutions/search');
 
 app.use('/', test);
 app.use('/api/plaid/link/token/create', link_token_create);
@@ -30,6 +36,15 @@ app.use('/api/plaid/transactions/categories/get', categories_get);
 app.use('/api/plaid/accounts/get', accounts_get);
 app.use('/api/plaid/auth/get', auth_get);
 app.use('/api/plaid/identity/get', identity_get);
+app.use('/api/plaid/balance/get', balance_get);
+// TODO: ADD LOGIC, NOT WORKING
+app.use('/api/plaid/investments/holdings/get', investments_holdings_get);
+// TODO: ADD LOGIC, NOT WORKING
+app.use('/api/plaid/liabilities/get', liabilities_get);
+app.use('/api/plaid/institutions/get', institutions_get);
+app.use('/api/plaid/institutions/get_by_id', institutions_get_by_id);
+// TODO: FIX, BROKEN, UNSURE WHY
+app.use('/api/plaid/institutions/search', institutions_search);
 
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
