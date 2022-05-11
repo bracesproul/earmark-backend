@@ -50,7 +50,8 @@ router.get('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
     const accessToken = req.query.access_token;
     const itemId = req.query.itemId;
-    let requestIds = new Array();
+
+    let requestId = new String();
     let institution_id = new String();
     let available_products = new Array();
     let item = new Object();
@@ -67,7 +68,7 @@ router.get('/', async (req: any, res: any, next: any) => {
         available_products.push(response.data.item.available_products);
         institution_id = response.data.item.institution_id;
         item = response.data.item;
-        requestIds.push(response.data.request_id);
+        requestId = response.data.request_id;
 
         const docData = {
             institution_id: institution_id,
@@ -89,7 +90,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 item: item,
                 user_id: user_id,
                 requestTime: new Date().toLocaleString(),
-                requestIds: requestIds,
+                requestIds: requestId,
                 nextApiUrl: "/api/plaid/item/get",
                 backendApiUrl: "/api/itemGet",
                 method: "GET",

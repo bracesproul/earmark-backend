@@ -58,6 +58,7 @@ router.post('/', async (req: any, res: any, next: any) => {
     console.log('exchange token success', accessToken, itemId);
 
     await updateFirestore(userId, accessToken, itemId);
+    /*
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -71,8 +72,10 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
     }
     const axiosResponse = await axios(config);
-    console.log(axiosResponse.data);
-    res.status(200).send("Successfully generated access token and updated firestore");
+    console.log(axiosResponse.data); */
+    res.status(200);
+    res.send("Successfully generated access token");
+    res.end();
   } catch (error) {
     res.status(400).send(error);
   }
