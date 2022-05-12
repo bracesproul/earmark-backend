@@ -57,8 +57,8 @@ router.post('/', async (req: any, res: any, next: any) => {
                 method_used: req.method,
             }
         };
-        console.log('INSIDE CATCH');
-        res.statusCode(error.status);
+        console.log(error);
+        res.status(400);
         res.send(error_message);
         res.end();
     }
