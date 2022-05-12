@@ -101,9 +101,27 @@ router.get('/', async (req: any, res: any, next: any) => {
         await res.send(finalResponse);
         await res.end();
     } catch (error) {
+        const error_message = {
+            stack: error.stack,
+            headers: error.headers,
+            statusCode: error.statusCode,
+            message: "error, try again",
+            required_params: [
+                {id: "user_id", type: "string", description: "users unique id"},
+                {id: "access_token", type: "string", description: "plaid access token"},
+                {id: "itemId", type: "string", description: "plaid item id"},
+            ],
+            metaData: {
+                error: error,
+                requestTime: new Date().toLocaleString(),
+                nextApiUrl: "/api/plaid/item/get",
+                required_method: "GET",
+                method_used: req.method,
+            }
+        };
         console.log('INSIDE CATCH');
-        res.status(400);
-        res.send(error);
+        res.statusCode(error.status);
+        res.send(error_message);
         res.end();
     }
 });

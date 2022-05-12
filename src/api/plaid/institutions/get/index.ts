@@ -33,7 +33,7 @@ router.get('/', async (req:any, res:any, next:any) => {
   const institutionsArr = new Array();
   let requestIds = new String();
   let totalInstitutions = new Number();
-
+  console.log("count: ", count);
     /* @ts-ignore */
     const request: InstitutionsGetRequest = {
         count: count,
@@ -46,9 +46,27 @@ router.get('/', async (req:any, res:any, next:any) => {
         requestIds = response.request_id;
         totalInstitutions = response.data.total;
     } catch (error) {
-        console.log(error)
-        res.status(400).send(error);
-        res.end();
+      const error_message = {
+        stack: error.stack,
+        headers: error.headers,
+        statusCode: error.statusCode,
+        message: "error, try again",
+        required_params: [
+          {id: "count", type: "int", description: "number of institutions to return"},
+          {id: "offset", type: "int", description: "offset to return"},
+        ],
+        metaData: {
+            error: error,
+            requestTime: new Date().toLocaleString(),
+            nextApiUrl: "/api/plaid/institutions/get",
+            required_method: "GET",
+            method_used: req.method,
+        }
+    };
+    console.log('INSIDE CATCH');
+    res.statusCode(error.status);
+    res.send(error_message);
+    res.end();
     }
     const finalResponse = {
         institutions: institutionsArr,

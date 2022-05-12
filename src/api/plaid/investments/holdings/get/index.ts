@@ -64,9 +64,27 @@ router.get('/', async (req:any, res:any, next:any) => {
     await res.send(finalResponse);
     await res.end();
   } catch (error) {
-    console.log(error)
-    res.status(400).send(error);
-    res.end();
+    const error_message = {
+      stack: error.stack,
+      headers: error.headers,
+      statusCode: error.statusCode,
+      message: "error, try again",
+      required_params: [
+        {id: "user_id", type: "string", description: "users unique id"},
+        {id: "access_token", type: "string", description: "plaid access token"},
+      ],
+      metaData: {
+          error: error,
+          requestTime: new Date().toLocaleString(),
+          nextApiUrl: "/api/plaid/investments/holdings/get",
+          required_method: "GET",
+          method_used: req.method,
+      }
+  };
+  console.log('INSIDE CATCH');
+  res.statusCode(error.status);
+  res.send(error_message);
+  res.end();
   };
 });
 

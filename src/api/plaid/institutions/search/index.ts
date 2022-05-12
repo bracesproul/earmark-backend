@@ -28,16 +28,14 @@ const client = new PlaidApi(configuration);
 
 router.get('/', async (req:any, res:any, next:any) => {
   const institutionID = req.query.insitutionID;
-  console.log(institutionID)
   const requestedProducts = req.query.requestedProducts;
-  console.log(typeof requestedProducts)
 
   let requestIds = new String();
   let requestedInstitutions = new Array();
 
     /* @ts-ignore */
     const request: InstitutionsSearchRequest = {
-        query: "ins_130347",
+        query: institutionID,
         products: requestedProducts,
         country_codes: ['US'],
       };
@@ -46,9 +44,27 @@ router.get('/', async (req:any, res:any, next:any) => {
         requestedInstitutions.push(response.data.institutions);
         requestIds = response.request_id;
     } catch (error) {
-        console.log(error)
-        res.status(400).send(error);
-        res.end();
+      const error_message = {
+        stack: error.stack,
+        headers: error.headers,
+        statusCode: error.statusCode,
+        message: "error, try again",
+        required_params: [
+          {id: "institutionID", type: "string", description: "institution ID to search for"},
+          {id: "requestedProducts", type: "array", description: "products to search for"},
+        ],
+        metaData: {
+            error: error,
+            requestTime: new Date().toLocaleString(),
+            nextApiUrl: "/api/plaid/institutions/search",
+            required_method: "GET",
+            method_used: req.method,
+        }
+    };
+    console.log('INSIDE CATCH');
+    res.statusCode(error.status);
+    res.send(error_message);
+    res.end();
     }
     const finalResponse = {
         institutions: requestedInstitutions,

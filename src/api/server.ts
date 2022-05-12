@@ -12,22 +12,22 @@ const PORT = process.env.PORT || 5000;
 
 
 
-// add routes
-const test = require('./test');
-const link_token_create = require('./link/token/create');
-const exchange_public_token = require('./item/public_token/exchange');
-const transactions_get = require('./transactions/get');
-const categories_get = require('./transactions/categories');
-const accounts_get = require('./accounts/get');
-const auth_get = require('./auth/get');
-const identity_get = require('./identity/get');
-const balance_get = require('./balance/get');
-const investments_holdings_get = require('./investments/holdings/get');
-const liabilities_get = require('./liabilities/get');
-const institutions_get = require('./institutions/get');
-const institutions_get_by_id = require('./institutions/get_by_id');
-const institutions_search = require('./institutions/search');
-const item_get = require('./item/get');
+// add plaid api routes
+const test = require('./plaid/test');
+const link_token_create = require('./plaid/link/token/create');
+const exchange_public_token = require('./plaid/item/public_token/exchange');
+const transactions_get = require('./plaid/transactions/get');
+const categories_get = require('./plaid/transactions/categories');
+const accounts_get = require('./plaid/accounts/get');
+const auth_get = require('./plaid/auth/get');
+const identity_get = require('./plaid/identity/get');
+const balance_get = require('./plaid/balance/get');
+const investments_holdings_get = require('./plaid/investments/holdings/get');
+const liabilities_get = require('./plaid/liabilities/get');
+const institutions_get = require('./plaid/institutions/get');
+const institutions_get_by_id = require('./plaid/institutions/get_by_id');
+const institutions_search = require('./plaid/institutions/search');
+const item_get = require('./plaid/item/get');
 
 app.use('/', test);
 app.use('/api/plaid/link/token/create', link_token_create);
@@ -47,6 +47,15 @@ app.use('/api/plaid/institutions/get_by_id', institutions_get_by_id);
 // TODO: FIX, BROKEN, UNSURE WHY
 app.use('/api/plaid/institutions/search', institutions_search);
 app.use('/api/plaid/item/get', item_get);
+
+// all earmark api routes
+const earmark_accountInfo = require('./earmark/accountInfo');
+const earmark_allTransactions = require('./earmark/allTransactions');
+const earmark_balance = require('./earmark/balance');
+
+app.use('/api/earmark/accountInfo', earmark_accountInfo);
+app.use('/api/earmark/allTransactions', earmark_allTransactions);
+app.use('/api/earmark/balance', earmark_balance);
 
 
 app.use(morgan('dev'));

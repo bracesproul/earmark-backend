@@ -77,7 +77,27 @@ router.post('/', async (req: any, res: any, next: any) => {
     res.send("Successfully generated access token");
     res.end();
   } catch (error) {
-    res.status(400).send(error);
+    const error_message = {
+      stack: error.stack,
+      headers: error.headers,
+      statusCode: error.statusCode,
+      message: "error, try again",
+      required_params: [
+        {id: "user_id", type: "string", description: "users unique id"},
+        {id: "publicToken", type: "string", description: "plaid public token"},
+      ],
+      metaData: {
+          error: error,
+          requestTime: new Date().toLocaleString(),
+          nextApiUrl: "/api/plaid/item/public_token/exchange",
+          required_method: "POST",
+          method_used: req.method,
+      }
+  };
+  console.log('INSIDE CATCH');
+  res.statusCode(error.status);
+  res.send(error_message);
+  res.end();
   }
 
 });

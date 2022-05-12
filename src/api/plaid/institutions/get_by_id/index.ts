@@ -42,9 +42,26 @@ router.get('/', async (req:any, res:any, next:any) => {
         requestedInstitution = response.data.institution;
         requestIds = response.request_id;
     } catch (error) {
-        console.log(error)
-        res.status(400).send(error);
-        res.end();
+      const error_message = {
+        stack: error.stack,
+        headers: error.headers,
+        statusCode: error.statusCode,
+        message: "error, try again",
+        required_params: [
+          {id: "institutionID", type: "string", description: "institution ID to search for"},
+        ],
+        metaData: {
+            error: error,
+            requestTime: new Date().toLocaleString(),
+            nextApiUrl: "/api/plaid/institution/get_by_id",
+            required_method: "GET",
+            method_used: req.method,
+        }
+    };
+    console.log('INSIDE CATCH');
+    res.statusCode(error.status);
+    res.send(error_message);
+    res.end();
     }
     const finalResponse = {
         institution: requestedInstitution,

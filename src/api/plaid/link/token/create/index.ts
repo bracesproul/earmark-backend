@@ -41,7 +41,26 @@ router.post('/', async (req: any, res: any, next: any) => {
         const linkToken = response.data.link_token;
         res.status(200).send(linkToken);
     } catch (error) {
-        res.status(400).send(error)
+        const error_message = {
+            stack: error.stack,
+            headers: error.headers,
+            statusCode: error.statusCode,
+            message: "error, try again",
+            required_params: [
+                {id: "user_id", type: "string", description: "users unique id"},
+            ],
+            metaData: {
+                error: error,
+                requestTime: new Date().toLocaleString(),
+                nextApiUrl: "/api/plaid/link/token/create",
+                required_method: "POST",
+                method_used: req.method,
+            }
+        };
+        console.log('INSIDE CATCH');
+        res.statusCode(error.status);
+        res.send(error_message);
+        res.end();
     }
 });
 

@@ -88,13 +88,33 @@ router.get('/', async (req:any, res:any, next:any) => {
   await res.status(200);
   await res.send(finalResponse);
   await res.end();
+
   } catch (error) {
-  console.log(error)
-  res.status(400).send(error);
+    const error_message = {
+      stack: error.stack,
+      headers: error.headers,
+      statusCode: error.statusCode,
+      message: "error, try again",
+      required_params: [
+        {id: "startDate", type: "string", description: "start date of transactions"},
+        {id: "endDate", type: "string", description: "end date of transactions"},
+        {id: "user_id", type: "string", description: "users unique id"},
+        {id: "access_token", type: "string", description: "plaid access token"},
+      ],
+      metaData: {
+          error: error,
+          requestTime: new Date().toLocaleString(),
+          nextApiUrl: "/api/plaid/accounts/get",
+          required_method: "GET",
+          method_used: req.method,
+      }
+  };
+  console.log('INSIDE CATCH');
+  res.statusCode(error.status);
+  res.send(error_message);
   res.end();
-  }
-
-
-})
+  };
+  
+});
 
 module.exports = router;
