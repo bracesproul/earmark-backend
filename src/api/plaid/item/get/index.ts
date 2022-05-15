@@ -18,7 +18,7 @@ const {
     setDoc,
     getFirestore, 
     where 
-} = require("firebase/firestore"); 
+} = require("firebase/firestore");
 const { initializeApp } = require("firebase/app");
 
 const configuration = new Configuration({
@@ -47,17 +47,18 @@ const transactions_get_app = initializeApp(firebaseConfig);
 const db = getFirestore(transactions_get_app);
 
 router.get('/', async (req: any, res: any, next: any) => {
-    
-    const user_id = req.query.user_id;
-    const accessToken = req.query.access_token;
+
+    const userId = req.query.user_id;
+    const accessToken = req.query.accessToken;
     const itemId = req.query.itemId;
+
     console.log('inside item get');
     let requestId = new String();
     let institution_id = new String();
-    let available_products = new Array();
+    let available_products;
     let item = new Object();
 
-    const docRef = doc(db, "users", user_id, "access_tokens", itemId);
+    const docRef = doc(db, "users", userId, "access_tokens", itemId);
 
     /* @ts-ignore */
     const request: ItemGetRequest = {
@@ -65,23 +66,22 @@ router.get('/', async (req: any, res: any, next: any) => {
     };
     try {
         const response = await client.itemGet(request);
-
-        available_products.push(response.data.item.available_products);
+        console.log(response.data);
+        available_products = response.data.item.available_products;
+        available_products.push("transactions");
         institution_id = response.data.item.institution_id;
         item = response.data.item;
         requestId = response.data.request_id;
 
         const docData = {
-            institution_id: institution_id,
+            institution_Id: institution_id,
             available_products: available_products,
         }
         setDoc(
             docRef, 
             docData, 
             { merge: true }
-        ).then(() => {
-            console.log("Successfully set doc");
-        });
+        );
 
         const finalResponse = {
             available_products: available_products,
@@ -89,7 +89,7 @@ router.get('/', async (req: any, res: any, next: any) => {
             statusMessage: "Success",
             metaData: {
                 item: item,
-                user_id: user_id,
+                user_id: userId,
                 requestTime: new Date().toLocaleString(),
                 requestIds: requestId,
                 nextApiUrl: "/api/plaid/item/get",
@@ -97,7 +97,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                 method: "GET",
             },
         };
-        console.log("finalResponse: ", finalResponse);
         await res.status(200);
         await res.send(finalResponse);
         await res.end();
@@ -120,8 +119,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                 method_used: req.method,
             }
         };
-        console.log('INSIDE CATCH');
-        res.statusCode(error.status);
+        console.log(error);
+        res.status(400);
         res.send(error_message);
         res.end();
     }

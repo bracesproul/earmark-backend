@@ -58,7 +58,7 @@ router.post('/', async (req: any, res: any, next: any) => {
     console.log('exchange token success', accessToken, itemId);
 
     await updateFirestore(userId, accessToken, itemId);
-    /*
+
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -66,16 +66,16 @@ router.post('/', async (req: any, res: any, next: any) => {
       method: "GET",
       url: `http://localhost:5000/api/plaid/item/get`,
       params: {
-        user_id: userId,
-        access_token: accessToken,
+        userId: userId,
+        accessToken: accessToken,
         itemId: itemId,
       }
     }
     const axiosResponse = await axios(config);
-    console.log(axiosResponse.data); */
-    res.status(200);
-    res.send("Successfully generated access token");
-    res.end();
+    console.log(axiosResponse.data);
+    await res.status(200);
+    await res.send("Successfully generated access token");
+    await res.end();
   } catch (error) {
     const error_message = {
       stack: error.stack,
@@ -95,7 +95,7 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
   };
   console.log('INSIDE CATCH');
-  res.statusCode(error.status);
+  res.status(400);
   res.send(error_message);
   res.end();
   }

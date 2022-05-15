@@ -43,7 +43,7 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
   };
   console.log('INSIDE CATCH');
-  res.statusCode(error.status);
+  res.status(400);
   res.send(error_message);
   res.end();
   }
