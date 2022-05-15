@@ -5,7 +5,7 @@ dotenv.config();
 const express = require('express');
 const router = express.Router();
 
-router.get('/', async (req: any, res: any, next: any) => {
+router.get('/', async (req: any, res: any) => {
     try {
         const success_message = {
             message: 'not setup yet',
@@ -18,9 +18,9 @@ router.get('/', async (req: any, res: any, next: any) => {
                 method: "GET",
             },
         };
-        res.status(200);
-        res.send(success_message);
-        res.end();
+        await res.status(200);
+        await res.send(success_message);
+        await res.end();
     } catch (error) {
         res.status(400);
         res.send(error);

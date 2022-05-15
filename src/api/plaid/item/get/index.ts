@@ -47,10 +47,11 @@ const transactions_get_app = initializeApp(firebaseConfig);
 const db = getFirestore(transactions_get_app);
 
 router.get('/', async (req: any, res: any, next: any) => {
+    
     const user_id = req.query.user_id;
     const accessToken = req.query.access_token;
     const itemId = req.query.itemId;
-
+    console.log('inside item get');
     let requestId = new String();
     let institution_id = new String();
     let available_products = new Array();
@@ -124,6 +125,7 @@ router.get('/', async (req: any, res: any, next: any) => {
         res.send(error_message);
         res.end();
     }
+
 });
 
 
