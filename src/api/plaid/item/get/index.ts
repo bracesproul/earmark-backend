@@ -76,7 +76,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     let institution_id = new String();
     let available_products;
     let item = new Object();
-    let docRef;
 
     /* @ts-ignore */
     const request: ItemGetRequest = {
@@ -84,13 +83,13 @@ router.get('/', async (req: any, res: any, next: any) => {
     };
     try {
         const response = await client.itemGet(request);
-        console.log(response.data);
+        console.log("RUNNING ITEM/GET");
         available_products = response.data.item.available_products;
         available_products.push("transactions");
         institution_id = response.data.item.institution_id;
         item = response.data.item;
         requestId = response.data.request_id;
-
+        const docRef = doc(db, "users", userId, "access_tokens", access_token);
         const docData = {
             institution_Id: institution_id,
             available_products: available_products,

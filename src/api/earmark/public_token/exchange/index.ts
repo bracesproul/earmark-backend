@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { paramErrorHandling } from '../../../../../lib/Errors/paramErrorHandling';
+import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling';
 
 const express = require('express');
 const router = express.Router();
@@ -89,15 +89,15 @@ router.post('/', async (req: any, res: any, next: any) => {
     
     await updateFirestore(userId, accessToken, itemId, institution_id, available_products)
     .then(async () => {
-      console.log('updated firestore - api/plaid/item/public_token/exchange');
+      console.log('updated firestore - /api/earmark/public_token/exchange');
     })
     .catch((error:any) => {
-      console.error("Error writing document - api/plaid/item/public_token/exchange");
+      console.error("Error writing document - /api/earmark/public_token/exchange");
       console.error("Error writing document: ", error);
       finalStatus = 400;
       finalResponse = {
           error: error,
-          message: "Error writing document - api/plaid/item/public_token/exchange"
+          message: "Error writing document - /api/earmark/public_token/exchange"
       };
     })
 
@@ -116,7 +116,7 @@ router.post('/', async (req: any, res: any, next: any) => {
       metaData: {
           error: error,
           requestTime: new Date().toLocaleString(),
-          nextApiUrl: "/api/plaid/item/public_token/exchange",
+          nextApiUrl: "/api/earmark/public_token/exchange",
           required_method: "POST",
           method_used: req.method,
       }
@@ -151,10 +151,10 @@ const updateFirestore = async (user_id: string, access_token: string, item_id: s
   }
   await setDoc(docRef, docData)
   .then(() => {
-      console.log("Document successfully written! - api/plaid/public_token/exchange");
+      console.log("Document successfully written! - /api/earmark/public_token/exchange");
   })
   .catch((error:any) => {
-      console.error("Error writing document - api/plaid/public_token/exchange");
+      console.error("Error writing document - /api/earmark/public_token/exchange");
       console.error("Error writing document: ", error);
   })
   console.log("updated firestore");

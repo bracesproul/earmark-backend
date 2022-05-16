@@ -52,10 +52,12 @@ app.use('/api/plaid/item/get', item_get);
 const earmark_accountInfo = require('./earmark/accountInfo');
 const earmark_allTransactions = require('./earmark/allTransactions');
 const earmark_balance = require('./earmark/balance');
+const earmarkPublic_tokenExchange = require('./earmark/public_token/exchange');
 
 app.use('/api/earmark/accountInfo', earmark_accountInfo);
 app.use('/api/earmark/allTransactions', earmark_allTransactions);
 app.use('/api/earmark/balance', earmark_balance);
+app.use('/api/earmark/public_token/exchange', earmarkPublic_tokenExchange);
 
 // Config so api doesn't return 500 when requesting favicon.ico
 app.get('/favicon.ico', (req:any, res:any) => {

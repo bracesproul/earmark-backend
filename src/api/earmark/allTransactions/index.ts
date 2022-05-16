@@ -3,6 +3,8 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
+
 const express = require('express');
 const router = express.Router();
 
@@ -32,20 +34,29 @@ const db = getFirestore(transactions_get_app);
 
 
 router.get('/', async (req: any, res: any, next: any) => {
-    const userId = req.query.user_id;
-    let docRef;
-    if (userId) {
-        docRef = collection(db, "users", userId, "access_tokens");
-    } else if (!userId) {
-        console.error("Error: userId required");
-        res.status(400);
-        res.json({
-            message: "Error: userId required"
-        });
-        res.end();
-    }
+    const user_id = req.query.user_id;
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+
+    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+    const requiredParams = ['user_id', 'startDate', 'endDate'];
+    const params = {
+        user_id: user_id,
+        startDate: startDate,
+        endDate: endDate,
+    };
+    const nextApiUrl = '/api/earmark/allTransactions';
+    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+        await res.status(400);
+        await res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+        return;
+    };
+    // END ERROR HANDLING CODE
+
 
     let accessTokens = new Array;
+    const docRef = collection(db, "users", user_id, "accessTokens");
     const q = query(docRef, where("available_products", "array-contains", "transactions"));
     const querySnapshot = await getDocs(q)
     .then(() => {
@@ -76,12 +87,12 @@ router.get('/', async (req: any, res: any, next: any) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                url: "http://localhost:5000/api/plaid/transactions/get",
+                url: "http://localhost:8080/api/plaid/transactions/get",
                 params: {
-                    user_id: userId,
+                    user_id: user_id,
                     access_token: accessTokens[i],
-                    startDate: "2021-05-01",
-                    endDate: "2022-05-01"
+                    startDate: startDate,
+                    endDate: endDate,
                 },
                 method: "GET"
             }
