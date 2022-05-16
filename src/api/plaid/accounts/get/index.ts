@@ -3,6 +3,8 @@
 const express = require('express');
 const router = express.Router();
 
+import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling'
+
 const { 
     Configuration, 
     PlaidApi, 
@@ -24,9 +26,28 @@ const configuration = new Configuration({
 const client = new PlaidApi(configuration);
 
 router.get('/', async (req: any, res: any, next: any) => {
-    console.log("req.query: ", req.query);
+
     const user_id = req.query.user_id;
     const accessToken = req.query.access_token;
+    
+    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+    const requiredParams = ['user_id', 'accessToken'];
+    const params = {
+        user_id: user_id,
+        accessToken: accessToken
+    };
+    const nextApiUrl = '/api/plaid/accounts/get';
+
+    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+        res.status(400);
+        res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+        return;
+    };
+    // END ERROR HANDLING CODE
+
+    let finalResponse;
+    let finalStatus;
     let accountsGet;
     let requestId;
     /* @ts-ignore */
@@ -38,7 +59,7 @@ router.get('/', async (req: any, res: any, next: any) => {
         const response = await client.accountsGet(request);
         accountsGet = response.data;
         requestId = response.data.request_id;
-        const finalResponse = {
+        finalResponse = {
             accounts: accountsGet,
             statusCode: 200,
             statusMessage: "Success",
@@ -51,11 +72,9 @@ router.get('/', async (req: any, res: any, next: any) => {
                 method: "GET",
             },
         };
-        await res.status(200);
-        await res.send(finalResponse);
-        await res.end();
+        finalStatus = 200;
     } catch (error) {
-        const error_message = {
+        finalResponse = {
             stack: error.stack,
             headers: error.headers,
             statusCode: error.statusCode,
@@ -73,10 +92,11 @@ router.get('/', async (req: any, res: any, next: any) => {
             }
         };
         console.log('INSIDE CATCH');
-        res.status(400);
-        res.send(error_message);
-        res.end();
+        finalStatus = 400;
     }
+    await res.status(finalStatus);
+    await res.send(finalResponse);
+    await res.end();
 });
 
 

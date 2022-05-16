@@ -1,6 +1,9 @@
 /* eslint-disable */
 import dotenv from 'dotenv';
 dotenv.config();
+
+import { paramErrorHandling } from '../../../../../lib/Errors/paramErrorHandling'
+
 const express = require('express');
 const router = express.Router();
 
@@ -24,7 +27,23 @@ const PLAID_COUNTRY_CODES = (process.env.PLAID_COUNTRY_CODES || 'US').split(',')
 
 router.post('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
+    
+    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+    const requiredParams = ['user_id'];
+    const params = {
+        user_id: user_id,
+    };
+    const nextApiUrl = '/api/plaid/link/token/create';
+    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+        res.status(400);
+        res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+        return;
+    };
+    // END ERROR HANDLING CODE
 
+    let finalResponse;
+    let finalStatus;
     try {
         const request: LinkTokenCreateRequest = {
             user: {
@@ -39,9 +58,10 @@ router.post('/', async (req: any, res: any, next: any) => {
         };
         const response = await client.linkTokenCreate(request);
         const linkToken = response.data.link_token;
-        res.status(200).send(linkToken);
+        finalResponse = linkToken;
+        finalStatus = response.status;
     } catch (error) {
-        const error_message = {
+        finalResponse = {
             stack: error.stack,
             headers: error.headers,
             statusCode: error.statusCode,
@@ -57,11 +77,12 @@ router.post('/', async (req: any, res: any, next: any) => {
                 method_used: req.method,
             }
         };
-        console.log(error);
-        res.status(400);
-        res.send(error_message);
-        res.end();
+        finalStatus = 400;
+        console.error(error);
     }
+    await res.status(finalStatus);
+    await res.send(finalResponse);
+    await res.end();
 });
 
 

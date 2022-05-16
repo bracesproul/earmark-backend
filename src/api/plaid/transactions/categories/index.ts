@@ -19,15 +19,15 @@ const configuration = new Configuration({
 const client = new PlaidApi(configuration);
 
 router.post('/', async (req: any, res: any, next: any) => {
-
+  let finalResponse;
+  let finalStatus;
   try {
     const response = await client.categoriesGet({});
     const categories = response.data.categories;
-    res.status(200);
-    res.send(categories);
-    res.end();
+    finalResponse = categories;
+    finalStatus = 200;
   } catch (error) {
-    const error_message = {
+    finalResponse = {
       stack: error.stack,
       headers: error.headers,
       statusCode: error.statusCode,
@@ -43,10 +43,11 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
   };
   console.log('INSIDE CATCH');
-  res.status(400);
-  res.send(error_message);
-  res.end();
+  finalStatus = 400;
   }
+  await res.status(finalStatus);
+  await res.send(finalResponse);
+  await res.end();
 });
 
 

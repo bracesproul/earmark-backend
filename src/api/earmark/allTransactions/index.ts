@@ -33,10 +33,34 @@ const db = getFirestore(transactions_get_app);
 
 router.get('/', async (req: any, res: any, next: any) => {
     const userId = req.query.user_id;
-    const docRef = collection(db, "users", userId, "access_tokens");
+    let docRef;
+    if (userId) {
+        docRef = collection(db, "users", userId, "access_tokens");
+    } else if (!userId) {
+        console.error("Error: userId required");
+        res.status(400);
+        res.json({
+            message: "Error: userId required"
+        });
+        res.end();
+    }
+
     let accessTokens = new Array;
     const q = query(docRef, where("available_products", "array-contains", "transactions"));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(q)
+    .then(() => {
+        console.log("Document successfully written! - api/earmark/allTransactions");
+    })
+    .catch((error:any) => {
+        console.error("Error writing document - api/earmark/allTransactions");
+        console.error("Error writing document: ", error);
+        res.status(400);
+        res.json({
+            error: error,
+            message: "Error writing document - api/earmark/allTransactions"
+        });
+        res.end();
+    })
     querySnapshot.forEach((doc:any) => {
     // doc.data() is never undefined for query doc snapshots
     accessTokens.push(doc.data().access_token);

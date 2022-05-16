@@ -2,6 +2,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling'
+
 const moment = require('moment');
 
 const express = require('express');
@@ -27,11 +29,27 @@ const configuration = new Configuration({
 const client = new PlaidApi(configuration);
 
 router.get('/', async (req:any, res:any, next:any) => {
-  const institutionID = req.query.insitutionID;
+  const institutionID = req.query.institutionID;
   const requestedProducts = req.query.requestedProducts;
+    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+    const requiredParams = ['institutionID', 'requestedProducts'];
+    const params = {
+      institutionID: institutionID,
+      requestedProducts: requestedProducts,
+    };
+    const nextApiUrl = '/api/plaid/institutions/search';
+    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+        res.status(400);
+        res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+        return;
+    };
+    // END ERROR HANDLING CODE
 
   let requestIds = new String();
   let requestedInstitutions = new Array();
+  let finalResponse;
+  let finalStatus;
 
     /* @ts-ignore */
     const request: InstitutionsSearchRequest = {
@@ -43,8 +61,21 @@ router.get('/', async (req:any, res:any, next:any) => {
         const response = await client.institutionsSearch(request);
         requestedInstitutions.push(response.data.institutions);
         requestIds = response.request_id;
+        finalResponse = {
+          institutions: requestedInstitutions,
+          statusCode: 200,
+          statusMessage: "Success",
+          metaData: {
+              requestTime: new Date().toLocaleString(),
+              requestIds: requestIds,
+              nextApiUrl: "/api/plaid/institutions/search",
+              backendApiUrl: "/api/institutionsSearch",
+              method: "GET",
+          },
+        };
+        finalStatus = 200;
     } catch (error) {
-      const error_message = {
+      finalResponse = {
         stack: error.stack,
         headers: error.headers,
         statusCode: error.statusCode,
@@ -60,25 +91,11 @@ router.get('/', async (req:any, res:any, next:any) => {
             required_method: "GET",
             method_used: req.method,
         }
-    };
+      };
     console.log('INSIDE CATCH');
-    res.status(400);
-    res.send(error_message);
-    res.end();
+    finalStatus = 400;
     }
-    const finalResponse = {
-        institutions: requestedInstitutions,
-        statusCode: 200,
-        statusMessage: "Success",
-        metaData: {
-            requestTime: new Date().toLocaleString(),
-            requestIds: requestIds,
-            nextApiUrl: "/api/plaid/institutions/search",
-            backendApiUrl: "/api/institutionsSearch",
-            method: "GET",
-        },
-    };
-    await res.status(200);
+    await res.status(finalStatus);
     await res.send(finalResponse);
     await res.end();
 })

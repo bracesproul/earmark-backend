@@ -2,12 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/api/plaid/server.js",
+  "main": "./dist/api/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npx nodemon ./src/api/server.ts",
     "build": "tsc --build",
-    "start": "node ./src/api/plaid/server.js",
+    "start": "node ./dist/api/server.js",
     "clean": "tsc --build --clean"
   },
   "keywords": [],

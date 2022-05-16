@@ -2,6 +2,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { paramErrorHandling } from '../../../../../lib/Errors/paramErrorHandling'
+
 const moment = require('moment');
 
 const express = require('express');
@@ -34,20 +36,38 @@ const client = new PlaidApi(configuration);
 
 router.get('/', async (req:any, res:any, next:any) => {
   const user_id = req.query.user_id;
-  const accessToken = req.query.access_token;
+  const access_token = req.query.access_token;
+  
+  // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+  const requiredParams = ['user_id', 'access_token'];
+  const params = {
+    user_id: user_id,
+    access_token: access_token
+  };
+  const nextApiUrl = '/api/plaid/investments/holdings/get';
+  if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+      console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+      res.status(400);
+      res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+      return;
+  };
+  // END ERROR HANDLING CODE
+
 
   let investmentsGet = new Object();
   let requestId = new String();
+  let finalResponse;
+  let finalStatus;
 
   /* @ts-ignore */
   const request: InvestmentsHoldingsGetRequest = {
-      access_token: accessToken,
+      access_token: access_token,
   };
   try {
     const response = await client.investmentsHoldingsGet(request);
     investmentsGet = response.data;
     requestId = response.data.request_id;
-    const finalResponse = {
+    finalResponse = {
       investments: investmentsGet,
       statusCode: 200,
       statusMessage: "Success",
@@ -60,11 +80,9 @@ router.get('/', async (req:any, res:any, next:any) => {
           method: "GET",
       },
     };
-    await res.status(200);
-    await res.send(finalResponse);
-    await res.end();
+    finalStatus = 200;
   } catch (error) {
-    const error_message = {
+    finalResponse = {
       stack: error.stack,
       headers: error.headers,
       statusCode: error.statusCode,
@@ -80,12 +98,13 @@ router.get('/', async (req:any, res:any, next:any) => {
           required_method: "GET",
           method_used: req.method,
       }
+    };
+  finalStatus = 400;
+  console.error('INSIDE CATCH');
   };
-  console.log('INSIDE CATCH');
-  res.status(400);
-  res.send(error_message);
-  res.end();
-  };
+  await res.status(finalStatus);
+  await res.send(finalResponse);
+  await res.end();
 });
 
 module.exports = router;

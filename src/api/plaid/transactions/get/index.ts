@@ -2,6 +2,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling'
+
 const moment = require('moment');
 
 const express = require('express');
@@ -49,17 +51,37 @@ const db = getFirestore(transactions_get_app);
 
 router.get('/', async (req:any, res:any, next:any) => {
   const user_id = req.query.user_id;
-  const accessToken = req.query.access_token;
+  const access_token = req.query.access_token;
   const startDate = req.query.startDate;
   const endDate = req.query.endDate
+  
+  // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+  const requiredParams = ['user_id', 'access_token', 'startDate', 'endDate'];
+  const params = {
+    user_id: user_id,
+    access_token: access_token,
+    startDate: startDate,
+    endDate: endDate
+  };
+  const nextApiUrl = '/api/plaid/transactions/get';
+  if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+      console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+      res.status(400);
+      res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+      return;
+  };
+  // END ERROR HANDLING CODE
+
   
   let transactionsGet;
   let requestId = new String();
   let totalTxns = new Number();
+  let finalResponse;
+  let finalStatus;
 
   /* @ts-ignore */
   const request: TransactionsGetRequest = {
-    access_token: accessToken,
+    access_token: access_token,
     start_date: startDate,
     end_date: endDate,
   };
@@ -71,7 +93,7 @@ router.get('/', async (req:any, res:any, next:any) => {
     totalTxns += txns.length;
   })
   requestId = response.data.request_id;
-  const finalResponse = {
+  finalResponse = {
     transactions: transactionsGet,
     statusCode: 200,
     statusMessage: "Success",
@@ -85,12 +107,9 @@ router.get('/', async (req:any, res:any, next:any) => {
         method: "GET",
     },
   };
-  await res.status(200);
-  await res.send(finalResponse);
-  await res.end();
-
+  finalStatus = 200;
   } catch (error) {
-    const error_message = {
+    finalResponse = {
       stack: error.stack,
       headers: error.headers,
       statusCode: error.statusCode,
@@ -104,17 +123,17 @@ router.get('/', async (req:any, res:any, next:any) => {
       metaData: {
           error: error,
           requestTime: new Date().toLocaleString(),
-          nextApiUrl: "/api/plaid/accounts/get",
+          nextApiUrl: "/api/plaid/transactions/get",
           required_method: "GET",
           method_used: req.method,
       }
   };
   console.log('INSIDE CATCH');
-  res.status(400);
-  res.send(error_message);
-  res.end();
+  finalStatus = 400;
   };
-  
+  await res.status(finalStatus);
+  await res.send(finalResponse);
+  await res.end();
 });
 
 module.exports = router;

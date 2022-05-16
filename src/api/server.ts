@@ -33,7 +33,7 @@ app.use('/', test);
 app.use('/api/plaid/link/token/create', link_token_create);
 app.use('/api/plaid/item/public_token/exchange', exchange_public_token);
 app.use('/api/plaid/transactions/get', transactions_get);
-app.use('/api/plaid/transactions/categories/get', categories_get);
+app.use('/api/plaid/transactions/categories', categories_get);
 app.use('/api/plaid/accounts/get', accounts_get);
 app.use('/api/plaid/auth/get', auth_get);
 app.use('/api/plaid/identity/get', identity_get);
@@ -56,6 +56,12 @@ const earmark_balance = require('./earmark/balance');
 app.use('/api/earmark/accountInfo', earmark_accountInfo);
 app.use('/api/earmark/allTransactions', earmark_allTransactions);
 app.use('/api/earmark/balance', earmark_balance);
+
+// Config so api doesn't return 500 when requesting favicon.ico
+app.get('/favicon.ico', (req:any, res:any) => {
+    res.status(204);
+    res.end();
+});
 
 
 app.use(morgan('dev'));

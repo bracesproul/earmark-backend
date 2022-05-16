@@ -2,7 +2,8 @@
 /* @ts-ignore */
 const express = require('express');
 const router = express.Router();
-
+import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling'
+// lib\Errors\paramErrorHandling.ts
 const { 
     Configuration, 
     PlaidApi, 
@@ -49,20 +50,37 @@ const db = getFirestore(transactions_get_app);
 router.get('/', async (req: any, res: any, next: any) => {
 
     const userId = req.query.user_id;
-    const accessToken = req.query.accessToken;
+    const access_token = req.query.access_token;
     const itemId = req.query.itemId;
 
+    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
+    const requiredParams = ['userId', 'access_token', 'itemId'];
+    const params = {
+        userId: userId,
+        access_token: access_token,
+        itemId: itemId
+    };
+    const nextApiUrl = '/api/plaid/item/get';
+    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
+        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
+        res.status(400);
+        res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
+        return;
+    };
+    // END ERROR HANDLING CODE
+    
     console.log('inside item get');
+    let finalResponse;
+    let finalStatus;
     let requestId = new String();
     let institution_id = new String();
     let available_products;
     let item = new Object();
-
-    const docRef = doc(db, "users", userId, "access_tokens", itemId);
+    let docRef;
 
     /* @ts-ignore */
     const request: ItemGetRequest = {
-        access_token: accessToken,
+        access_token: access_token,
     };
     try {
         const response = await client.itemGet(request);
@@ -81,9 +99,22 @@ router.get('/', async (req: any, res: any, next: any) => {
             docRef, 
             docData, 
             { merge: true }
-        );
+        )
+        .then(() => {
+            console.log("Document successfully written! - /api/plaid/item/get");
+        })
+        .catch((error:any) => {
+            console.error("Error writing document - /api/plaid/item/get");
+            console.error("Error writing document: ", error);
+            res.status(400);
+            res.json({
+                error: error,
+                message: "Error writing document - /api/plaid/item/get"
+            });
+            res.end();
+        })
 
-        const finalResponse = {
+        finalResponse = {
             available_products: available_products,
             statusCode: 200,
             statusMessage: "Success",
@@ -97,11 +128,9 @@ router.get('/', async (req: any, res: any, next: any) => {
                 method: "GET",
             },
         };
-        await res.status(200);
-        await res.send(finalResponse);
-        await res.end();
+        finalStatus = 200;
     } catch (error) {
-        const error_message = {
+        finalResponse = {
             stack: error.stack,
             headers: error.headers,
             statusCode: error.statusCode,
@@ -119,12 +148,12 @@ router.get('/', async (req: any, res: any, next: any) => {
                 method_used: req.method,
             }
         };
-        console.log(error);
-        res.status(400);
-        res.send(error_message);
-        res.end();
+        finalStatus = 400;
+        console.error(error);
     }
-
+    await res.status(finalStatus);
+    await res.send(finalResponse);
+    await res.end();
 });
 
 
