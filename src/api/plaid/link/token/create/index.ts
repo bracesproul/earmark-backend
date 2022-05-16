@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 
 import { Configuration, PlaidApi, PlaidEnvironments, LinkTokenCreateRequest } from "plaid";
-
+console.log(process.env);
 const configuration = new Configuration({
     basePath: PlaidEnvironments[process.env.PLAID_ENV],
     baseOptions: {

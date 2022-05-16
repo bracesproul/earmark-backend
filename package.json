@@ -8,7 +8,8 @@
     "dev": "npx nodemon ./src/api/server.ts",
     "build": "tsc --build",
     "start": "node ./dist/api/server.js",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "aws": "CLIENT_ID=6259eccfea51c2001872325d SECRET=6c53b372b8a0266ea63eeb76e3bc0e PLAID_ENV=sandbox PLAID_PRODUCTS=auth,transactions PLAID_COUNTRY_CODES=US,CA PLAID_REDIRECT_URI=https://earmark-alpha.vercel.app/account PORT=8080 URL=https://184.169.199.251: npm run start"
   },
   "keywords": [],
   "author": "Brace Sproul",
