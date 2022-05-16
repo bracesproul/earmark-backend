@@ -5,7 +5,7 @@ dotenv.config();
 const express = require('express');
 const router = express.Router();
 
-const masterApiRouteList = [
+const masterPlaidApiRouteList = [
     {
         for: 'home', method: 'GET', route: '/'
     },
@@ -24,8 +24,49 @@ const masterApiRouteList = [
     {
         for: 'get all accounts linked to a user id', method: 'GET', route: '/api/plaid/accounts/get'
     },
-    
-]
+    {
+        for: 'get auth info from access_token', method: 'GET', route: '/api/plaid/auth/get'
+    },
+    {
+        for: 'get user identity from banks', method: 'GET', route: '/api/plaid/identity/get'
+    },
+    {
+        for: 'get account balance data', method: 'GET', route: '/api/plaid/balance/get'
+    },
+    {
+        for: '***BROKEN***', method: 'GET', route: '/api/plaid/investments/holdings/get'
+    },
+    {
+        for: '***BROKEN***', method: 'GET', route: '/api/plaid/liabilities/get'
+    },
+    {
+        for: 'get list of supported institutions', method: 'GET', route: '/api/plaid/institutions/get'
+    },
+    {
+        for: 'get institution info from id', method: 'GET', route: '/api/plaid/institutions/get_by_id'
+    },
+    {
+        for: '***BROKEN***', method: 'GET', route: '/api/plaid/institutions/search'
+    },
+    {
+        for: 'get data from an item_id', method: 'GET', route: '/api/plaid/item/get'
+    },
+];
+
+const masterEarmarkApiRouteList = [
+    {
+        for: 'get linked accounts info', method: 'GET', route: '/api/earmark/accountInfo'
+    },
+    {
+        for: 'get all transactions from all access_tokens associated with a users account', method: 'GET', route: '/api/earmark/allTransactions'
+    },
+    {
+        for: 'get account balance data', method: 'GET', route: '/api/earmark/balance'
+    },
+    {
+        for: 'exchange public_token for access_token, update firebase with info from access_token', method: 'POST', route: '/api/earmark/public_token/exchange'
+    },
+];
 
 router.get('/', async (req: any, res: any, next: any) => {
     try {
@@ -35,7 +76,8 @@ router.get('/', async (req: any, res: any, next: any) => {
             statusCode: 200,
             statusMessage: "Success",
             metaData: {
-                masterApiRouteList: masterApiRouteList,
+                masterPlaidApiRouteList: masterPlaidApiRouteList,
+                masterEarmarkApiRouteList: masterEarmarkApiRouteList,
                 requestTime: new Date().toLocaleString(),
                 nextApiUrl: "/",
                 backendApiUrl: null,

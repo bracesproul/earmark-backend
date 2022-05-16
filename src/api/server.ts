@@ -10,7 +10,68 @@ dotenv.config();
 
 const PORT = process.env.PORT || 8080;
 const URL = process.env.URL || 'http://localhost:';
+const masterPlaidApiRouteList = [
+    {
+        for: 'home', method: 'GET', route: '/'
+    },
+    {
+        for: 'create a plaid link token', method: 'POST', route: '/api/plaid/link/token/create'
+    },
+    {
+        for: 'exchange public token for access token', method: 'POST', route: '/api/plaid/item/public_token/exchange'
+    },
+    {
+        for: 'get transaction list for all a users accounts', method: 'GET', route: '/api/plaid/transactions/get'
+    },
+    {
+        for: 'get all transaction categories', method: 'GET', route: '/api/plaid/transactions/categories/get'
+    },
+    {
+        for: 'get all accounts linked to a user id', method: 'GET', route: '/api/plaid/accounts/get'
+    },
+    {
+        for: 'get auth info from access_token', method: 'GET', route: '/api/plaid/auth/get'
+    },
+    {
+        for: 'get user identity from banks', method: 'GET', route: '/api/plaid/identity/get'
+    },
+    {
+        for: 'get account balance data', method: 'GET', route: '/api/plaid/balance/get'
+    },
+    {
+        for: '***BROKEN***', method: 'GET', route: '/api/plaid/investments/holdings/get'
+    },
+    {
+        for: '***BROKEN***', method: 'GET', route: '/api/plaid/liabilities/get'
+    },
+    {
+        for: 'get list of supported institutions', method: 'GET', route: '/api/plaid/institutions/get'
+    },
+    {
+        for: 'get institution info from id', method: 'GET', route: '/api/plaid/institutions/get_by_id'
+    },
+    {
+        for: '***BROKEN***', method: 'GET', route: '/api/plaid/institutions/search'
+    },
+    {
+        for: 'get data from an item_id', method: 'GET', route: '/api/plaid/item/get'
+    },
+];
 
+const masterEarmarkApiRouteList = [
+    {
+        for: 'get linked accounts info', method: 'GET', route: '/api/earmark/accountInfo'
+    },
+    {
+        for: 'get all transactions from all access_tokens associated with a users account', method: 'GET', route: '/api/earmark/allTransactions'
+    },
+    {
+        for: 'get account balance data', method: 'GET', route: '/api/earmark/balance'
+    },
+    {
+        for: 'exchange public_token for access_token, update firebase with info from access_token', method: 'POST', route: '/api/earmark/public_token/exchange'
+    },
+];
 
 // add plaid api routes
 const test = require('./plaid/test');
@@ -93,7 +154,9 @@ app.use((error: any, req: any, res: any, next: any) => {
     res.json({
         error: {
             message: error.message
-        }
+        },
+        masterPlaidApiRouteList: masterPlaidApiRouteList,
+        masterEarmarkApiRouteList: masterEarmarkApiRouteList
     });
 });
 
