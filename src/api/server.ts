@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
-
+const URL = process.env.URL || 'http://localhost:';
 
 
 // add plaid api routes
@@ -95,4 +95,4 @@ app.use((error: any, req: any, res: any, next: any) => {
     });
 });
 
-app.listen(PORT, () => console.log(`server started at localhost:${PORT}`));
+app.listen(PORT, () => console.log(`server started at ${URL}${PORT}`));

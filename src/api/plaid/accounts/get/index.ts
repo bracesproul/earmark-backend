@@ -13,7 +13,7 @@ const {
 } = require("plaid");
 
 const configuration = new Configuration({
-    basePath: PlaidEnvironments[process.env.ENV],
+    basePath: PlaidEnvironments[process.env.PLAID_ENV],
     baseOptions: {
         headers: {
             'PLAID-CLIENT-ID': process.env.CLIENT_ID,
