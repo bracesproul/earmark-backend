@@ -4,6 +4,7 @@ const app = express_server();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const validateApiKey = require('../middlewear/validateApiKey');
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -91,23 +92,23 @@ const institutions_search = require('./plaid/institutions/search');
 const item_get = require('./plaid/item/get');
 
 app.use('/', test);
-app.use('/api/plaid/link/token/create', link_token_create);
-app.use('/api/plaid/item/public_token/exchange', exchange_public_token);
-app.use('/api/plaid/transactions/get', transactions_get);
-app.use('/api/plaid/transactions/categories', categories_get);
-app.use('/api/plaid/accounts/get', accounts_get);
-app.use('/api/plaid/auth/get', auth_get);
-app.use('/api/plaid/identity/get', identity_get);
-app.use('/api/plaid/balance/get', balance_get);
+app.use('/api/plaid/link/token/create', validateApiKey, link_token_create);
+app.use('/api/plaid/item/public_token/exchange', validateApiKey, exchange_public_token);
+app.use('/api/plaid/transactions/get', validateApiKey, transactions_get);
+app.use('/api/plaid/transactions/categories', validateApiKey, categories_get);
+app.use('/api/plaid/accounts/get', validateApiKey, accounts_get);
+app.use('/api/plaid/auth/get', validateApiKey, auth_get);
+app.use('/api/plaid/identity/get', validateApiKey, identity_get);
+app.use('/api/plaid/balance/get', validateApiKey, balance_get);
 // TODO: ADD LOGIC, NOT WORKING
-app.use('/api/plaid/investments/holdings/get', investments_holdings_get);
+app.use('/api/plaid/investments/holdings/get', validateApiKey, investments_holdings_get);
 // TODO: ADD LOGIC, NOT WORKING
-app.use('/api/plaid/liabilities/get', liabilities_get);
-app.use('/api/plaid/institutions/get', institutions_get);
-app.use('/api/plaid/institutions/get_by_id', institutions_get_by_id);
+app.use('/api/plaid/liabilities/get', validateApiKey, liabilities_get);
+app.use('/api/plaid/institutions/get', validateApiKey, institutions_get);
+app.use('/api/plaid/institutions/get_by_id', validateApiKey, institutions_get_by_id);
 // TODO: FIX, BROKEN, UNSURE WHY
-app.use('/api/plaid/institutions/search', institutions_search);
-app.use('/api/plaid/item/get', item_get);
+app.use('/api/plaid/institutions/search', validateApiKey, institutions_search);
+app.use('/api/plaid/item/get', validateApiKey, item_get);
 
 // all earmark api routes
 const earmark_accountInfo = require('./earmark/accountInfo');
@@ -115,10 +116,10 @@ const earmark_allTransactions = require('./earmark/allTransactions');
 const earmark_balance = require('./earmark/balance');
 const earmarkPublic_tokenExchange = require('./earmark/public_token/exchange');
 
-app.use('/api/earmark/accountInfo', earmark_accountInfo);
-app.use('/api/earmark/allTransactions', earmark_allTransactions);
-app.use('/api/earmark/balance', earmark_balance);
-app.use('/api/earmark/public_token/exchange', earmarkPublic_tokenExchange);
+app.use('/api/earmark/accountInfo', validateApiKey, earmark_accountInfo);
+app.use('/api/earmark/allTransactions', validateApiKey, earmark_allTransactions);
+app.use('/api/earmark/balance', validateApiKey, earmark_balance);
+app.use('/api/earmark/public_token/exchange', validateApiKey, earmarkPublic_tokenExchange);
 
 // Config so api doesn't return 500 when requesting favicon.ico
 app.get('/favicon.ico', (req:any, res:any) => {
@@ -131,6 +132,7 @@ app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
+// app.use(validateApiKey());
 
 app.use((req: any, res: any, next: any) => {
     res.header('Access-Control-Allow-Origin', '*');
