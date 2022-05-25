@@ -146,7 +146,7 @@ const updateFirestore = async (user_id: string, access_token: string, item_id: s
     access_token: access_token,
     item_id: item_id,
     user_id: user_id,
-    institution_Id: institution_Id,
+    institution_id: institution_Id,
     available_products: available_products,
   }
   await setDoc(docRef, docData)

@@ -48,19 +48,20 @@ router.get('/', async (req: any, res: any, next: any) => {
 
     let finalResponse;
     let finalStatus;
-    let accountsGet;
     let requestId;
+
     /* @ts-ignore */
     const request: AccountsGetRequest = {
         access_token: accessToken,
     };
     try {
-        console.log('INSIDE TRY');
         const response = await client.accountsGet(request);
-        accountsGet = response.data;
+        const accounts = response.data.accounts;
+        const item = response.data.item
         requestId = response.data.request_id;
         finalResponse = {
-            accounts: accountsGet,
+            accounts: accounts,
+            item: item,
             statusCode: 200,
             statusMessage: "Success",
             metaData: {

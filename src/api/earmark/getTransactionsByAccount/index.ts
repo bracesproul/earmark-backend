@@ -34,6 +34,7 @@ router.get('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
+    const institution_id = req.query.institution_id;
 
     // ERROR HANDLING, CHECKS FOR MISSING PARAMS
     const requiredParams = ['user_id', 'startDate', 'endDate'];
@@ -41,8 +42,9 @@ router.get('/', async (req: any, res: any, next: any) => {
         user_id: user_id,
         startDate: startDate,
         endDate: endDate,
+        institution_id: institution_id,
     };
-    const nextApiUrl = '/api/earmark/allTransactions';
+    const nextApiUrl = '/api/earmark/getTransactionsByAccount';
     if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
         console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
         await res.status(400);
@@ -51,25 +53,23 @@ router.get('/', async (req: any, res: any, next: any) => {
     };
     // END ERROR HANDLING CODE
 
-    let accessTokens = new Array;
+    let accessToken = new String;
     let full_response;
-    let dataGridTransactions = new Array;
-    let transactionMetadata = new Array;
+    let accountMetadata = new Array;
 
     // firebase query code
-    const q = query(collection(db, "users", user_id, "access_tokens"), where("transactions", "==", true));
+    const q = query(collection(db, "users", user_id, "access_tokens"), where("institution_id", "==", institution_id));
     await getDocs(q).then((responseDB:any) => {
         responseDB.forEach((doc:any) => {
             // doc.data() is never undefined for query doc snapshots
-            accessTokens.push(doc.data().access_token);
+            accessToken = doc.data().access_token;
           });
     });
 
     // end firebase query code
-
+    console.log('inside getTransactionsByAccount');
     let finalResponse;
     let finalStatus = 400;
-    for (let i = 0; i < accessTokens.length; i++) {
         try {
             const config = {
                 headers: {
@@ -79,7 +79,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 url: API_URL + "/api/plaid/transactions/get",
                 params: {
                     user_id: user_id,
-                    access_token: accessTokens[i],
+                    access_token: accessToken,
                     startDate: startDate,
                     endDate: endDate,
                 },
@@ -87,30 +87,43 @@ router.get('/', async (req: any, res: any, next: any) => {
             }
             const response = await axios(config);
             full_response = response.data;
+            let accounts = new Array;
+            
+            await full_response.transactions.accounts.forEach((account:any) => {
+                accounts.push({[account.account_id]: []});
+            });
 
-            response.data.transactions.transactions.forEach((transaction:any) => {
-                dataGridTransactions.push({
-                    id: transaction.transaction_id, 
-                    col1: transaction.name, 
-                    col2: transaction.authorized_date, 
-                    col3: transaction.amount, 
-                    col4: transaction.category[0] 
-                });
-
-                transactionMetadata.push({
-                    [transaction.account_id]: {
-                        account_id: transaction.account_id,
-                        fullCategory: transaction.category,
-                        iso_currency_code: transaction.iso_currency_code,
-                        pending: transaction.pending,
-                        transaction_id: transaction.transaction_id,
+            accounts.map(async (account:any) => {
+                await response.data.transactions.transactions.map((transaction:any) => {
+                    if (transaction.account_id in account) {
+                        account[transaction.account_id].push({
+                            id: transaction.transaction_id, 
+                            col1: transaction.name, 
+                            col2: transaction.authorized_date, 
+                            col3: transaction.amount, 
+                            col4: transaction.category[0],
+                        });
                     }
                 });
             });
 
+            await response.data.transactions.accounts.forEach((account:any) => {
+                accountMetadata.push({
+                    account: {
+                        account_id: account.account_id,
+                        name: account.name,
+                        official_name: account.official_name,
+                        subtype: account.subtype,
+                        type: account.type,
+                    }
+                });
+            });
+
+            console.log(accountMetadata);
+
             finalResponse = {
-                dataGridTransactions: dataGridTransactions,
-                transactionMetadata: transactionMetadata,
+                accounts: accounts,
+                transactionMetadata: accountMetadata,
                 statusCode: 200,
                 statusMessage: "Success",
                 metaData: {
@@ -126,7 +139,6 @@ router.get('/', async (req: any, res: any, next: any) => {
             finalStatus = 400;
             finalResponse = error;
         };
-    };
     await res.status(finalStatus);
     await res.send(finalResponse);
     await res.end();
