@@ -117,12 +117,19 @@ const earmark_allTransactions = require('./earmark/allTransactions');
 const earmark_balance = require('./earmark/balance');
 const earmarkPublic_tokenExchange = require('./earmark/public_token/exchange');
 const getTransactionsByAccount = require('./earmark/getTransactionsByAccount')
+const allTransactionsByCategory = require('./earmark/allTransactionsByCategory');
 
 app.use('/api/earmark/allAccountInfo', validateApiKey, earmark_allAccountInfo);
 app.use('/api/earmark/allTransactions', validateApiKey, earmark_allTransactions);
 app.use('/api/earmark/balance', validateApiKey, earmark_balance);
 app.use('/api/earmark/public_token/exchange', validateApiKey, earmarkPublic_tokenExchange);
 app.use('/api/earmark/getTransactionsByAccount', validateApiKey, getTransactionsByAccount);
+app.use('/api/earmark/allTransactionsByCategory', validateApiKey, allTransactionsByCategory);
+
+// test routes
+//src\api\testRoutes
+const test_route = require('./testRoutes');
+app.use('/api/testRoutes', test_route);
 
 // Config so api doesn't return 500 when requesting favicon.ico
 app.get('/favicon.ico', (req:any, res:any) => {
