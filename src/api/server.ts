@@ -111,7 +111,7 @@ app.use('/api/plaid/institutions/search', validateApiKey, institutions_search);
 app.use('/api/plaid/item/get', validateApiKey, item_get);
 
 // all earmark api routes
-//src\api\earmark\getTransactionsByAccount
+//ssrc\api\earmark\allTransactions
 const earmark_allAccountInfo = require('./earmark/allAccountInfo');
 const earmark_allTransactions = require('./earmark/allTransactions');
 const earmark_balance = require('./earmark/balance');
@@ -125,6 +125,11 @@ app.use('/api/earmark/balance', validateApiKey, earmark_balance);
 app.use('/api/earmark/public_token/exchange', validateApiKey, earmarkPublic_tokenExchange);
 app.use('/api/earmark/getTransactionsByAccount', validateApiKey, getTransactionsByAccount);
 app.use('/api/earmark/allTransactionsByCategory', validateApiKey, allTransactionsByCategory);
+
+// firebase routes
+const firestore = require('./firebase/firestore');
+
+app.use('/api/firebase/firestore', validateApiKey, firestore);
 
 // test routes
 //src\api\testRoutes

@@ -4,30 +4,10 @@ import dotenv from 'dotenv';
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
-
+const updateFirestore = require('../../../lib/firebase/firestore/');
 const express = require('express');
 const router = express.Router();
 
-import { getFirestore, 
-    collection, 
-    query, 
-    where,
-    getDocs,
-} from "firebase/firestore";
-
-const { initializeApp } = require("firebase/app");
-
-const firebaseConfig = {
-    apiKey: "AIzaSyCOnXDWQ369OM1lW0VC5FdYE19q1ug0_dc",
-    authDomain: "earmark-8d1d3.firebaseapp.com",
-    projectId: "earmark-8d1d3",
-    storageBucket: "earmark-8d1d3.appspot.com",
-    messagingSenderId: "46302537330",
-    appId: "1:46302537330:web:403eac7f28d2a4868944eb",
-    measurementId: "G-5474KY2MRV"
-};
-const transactions_get_app = initializeApp(firebaseConfig);
-const db = getFirestore(transactions_get_app);
 const API_URL = globalVars().API_URL;
 
 router.get('/', async (req: any, res: any, next: any) => {
@@ -53,20 +33,10 @@ router.get('/', async (req: any, res: any, next: any) => {
     };
     // END ERROR HANDLING CODE
 
-    let accessToken = new String;
     let full_response;
     let accountMetadata = new Array;
+    const accessToken = await updateFirestore.getAccessTokensTransactions(user_id);
 
-    // firebase query code
-    const q = query(collection(db, "users", user_id, "access_tokens"), where("institution_id", "==", institution_id));
-    await getDocs(q).then((responseDB:any) => {
-        responseDB.forEach((doc:any) => {
-            // doc.data() is never undefined for query doc snapshots
-            accessToken = doc.data().access_token;
-          });
-    });
-
-    // end firebase query code
     console.log('inside getTransactionsByAccount');
     let finalResponse;
     let finalStatus = 400;

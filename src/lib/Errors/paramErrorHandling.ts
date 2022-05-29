@@ -32,24 +32,3 @@ export const paramErrorHandling = async (requiredParams: Array<any>, params: any
         jsonErrorMessage,
     };
 };
-
-// Use in api code:
-/*
-import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling'
-
-    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-    const requiredParams = ['<PARAM>', '<PARAM>'];
-    const params = {
-        <PARAM>: <PARAM>,
-        <PARAM>: <PARAM>
-    };
-    const nextApiUrl = '/api/<API_URL>';
-    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-        res.status(400);
-        res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-        return;
-    };
-    // END ERROR HANDLING CODE
-
-*/

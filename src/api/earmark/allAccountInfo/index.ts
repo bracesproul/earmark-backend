@@ -2,24 +2,15 @@
 /* @ts-ignore */
 const express = require('express');
 const router = express.Router();
-
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const globalVars = require('../../../lib/globalVars');
-
+const updateFirestore = require('../../../lib/firebase/firestore/index');
 const { 
     Configuration, 
     PlaidApi, 
     PlaidEnvironments, 
     AccountsGetRequest 
 } = require("plaid");
-import { getFirestore, 
-    collection, 
-    query, 
-    where,
-    getDocs,
-} from "firebase/firestore";
-
-const { initializeApp } = require("firebase/app");
 
 const configuration = new Configuration({
     basePath: PlaidEnvironments[process.env.PLAID_ENV],
@@ -31,20 +22,8 @@ const configuration = new Configuration({
         },
     },
 });
-
 const client = new PlaidApi(configuration);
 
-const firebaseConfig = {
-    apiKey: "AIzaSyCOnXDWQ369OM1lW0VC5FdYE19q1ug0_dc",
-    authDomain: "earmark-8d1d3.firebaseapp.com",
-    projectId: "earmark-8d1d3",
-    storageBucket: "earmark-8d1d3.appspot.com",
-    messagingSenderId: "46302537330",
-    appId: "1:46302537330:web:403eac7f28d2a4868944eb",
-    measurementId: "G-5474KY2MRV"
-};
-const transactions_get_app = initializeApp(firebaseConfig);
-const db = getFirestore(transactions_get_app);
 const API_URL = globalVars().API_URL;
 
 router.get('/', async (req: any, res: any) => {
@@ -68,16 +47,10 @@ router.get('/', async (req: any, res: any) => {
     let finalResponse;
     let finalStatus;
     let requestId;
-    let accessTokens = new Array();
+    // let accessTokens = new Array();
 
     // firebase query code
-    const q = query(collection(db, "users", user_id, "access_tokens"));
-    await getDocs(q).then((responseDB:any) => {
-        responseDB.forEach((doc:any) => {
-            // doc.data() is never undefined for query doc snapshots
-            accessTokens.push(doc.data().access_token);
-            });
-    });
+    const accessTokens = await updateFirestore.getAccessTokens(user_id);
     // end firebase query code
 
     for (let i = 0; i < accessTokens.length; i++) {

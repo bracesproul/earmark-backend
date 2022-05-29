@@ -7,7 +7,7 @@ import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling';
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-
+const updateFirestoreE = require('../../../../lib/firebase/firestore/');
 const { Configuration, PlaidApi, PlaidEnvironments, ItemPublicTokenExchangeRequest } = require("plaid");
 const { initializeApp } = require("firebase/app");
 const { getFirestore, doc, setDoc } = require("firebase/firestore");
@@ -86,7 +86,15 @@ router.post('/', async (req: any, res: any, next: any) => {
 
     console.log(response.data);
     const itemId = response.data.item_id;
-    
+    const params = {
+      userId: userId,
+      accessToken: accessToken,
+      itemId: itemId,
+      institutionId: institution_id,
+      availableProducts: available_products
+    }
+    await updateFirestoreE.createUser(userId, params)
+    /*
     await updateFirestore(userId, accessToken, itemId, institution_id, available_products)
     .then(async () => {
       console.log('updated firestore - /api/earmark/public_token/exchange');
@@ -100,6 +108,7 @@ router.post('/', async (req: any, res: any, next: any) => {
           message: "Error writing document - /api/earmark/public_token/exchange"
       };
     })
+    */
 
     finalResponse = "Successfully generated access token";
     finalStatus = 200;
