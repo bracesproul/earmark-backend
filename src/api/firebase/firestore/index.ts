@@ -52,6 +52,12 @@ router.post('/', async (req: any, res: any, next: any) => {
                 case "updateUserPersonal":
                     response = await updateFirestore.updateUserPersonal(user_id, params);
                     break;
+                case "deleteAccount":
+                    response = await updateFirestore.deleteAccount(user_id, params);
+                    break;
+                case "deleteAllInstitutions":
+                    response = await updateFirestore.deleteAllInstitutions(user_id, params);
+                    break;
             };
             finalResponse = {
                 response: response

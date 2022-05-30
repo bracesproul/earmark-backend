@@ -1,4 +1,6 @@
 const admin = require('firebase-admin');
+const { getAuth } = require('firebase-admin/auth');
+
 const serviceAccount = require('../../../../secrets/firebase-service-account.json');
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -241,7 +243,7 @@ const setupUserAccount = async (user_id: string, params: any) => {
 
 const updateUserSecurity = async (user_id: string, params: any) => {
     const parsedObject = JSON.parse(params);
-    const { firstName, lastName, phone, email } = parsedObject;
+    const { firstName, lastName, phone, email, password } = parsedObject;
     try {
         const userRef = adminDb.collection('users').doc(user_id);
         const data = {
@@ -252,6 +254,21 @@ const updateUserSecurity = async (user_id: string, params: any) => {
             full_name: `${firstName} ${lastName}`,
           }
         const res = await userRef.set(data, { merge: true });
+        console.log('phone', typeof phone);
+        getAuth()
+        .updateUser(user_id, {
+            email: email,
+            phoneNumber: `+1${phone}`,
+            password: password,
+            displayName: `${firstName} ${lastName}`,
+        })
+        .then((userRecord:any) => {
+            // See the UserRecord reference doc for the contents of userRecord.
+            console.log('Successfully updated user', userRecord.toJSON());
+        })
+        .catch((error:any) => {
+            console.log('Error updating user:', error);
+        });
         Promise.resolve(res);
         return 'success';
     } catch (error) {
@@ -303,6 +320,47 @@ const updateUserPersonal = async (user_id: string, params: any) => {
     };
 };
 
+const deleteAccount = async (user_id: string, params: any) => {
+    const parsedObject = JSON.parse(params);
+    console.log(parsedObject);
+    try {
+        const res = await adminDb.collection('users').doc(user_id).delete();
+        getAuth()
+        .deleteUser(user_id)
+        .then(() => {
+            console.log('Successfully deleted user');
+        })
+        .catch((error: any) => {
+            console.log('Error deleting user:', error);
+        });
+        Promise.resolve(res);
+        return 'user deleted';
+    } catch (error) {
+        console.error(error);
+        Promise.reject(error);
+        return error;
+    };
+};
+
+const deleteAllInstitutions = async (user_id: string, params: any) => {
+    const parsedObject = JSON.parse(params);
+    console.log(parsedObject);
+    try {
+        const institutionsRef = adminDb.collection('users').doc(user_id).collection('access_tokens');
+        const res = await institutionsRef.get().toPromise().then((querySnapshot: any) => {
+            querySnapshot.forEach((doc:any) => {
+                doc.ref.delete();
+            });
+        });
+        Promise.resolve(res);
+        return 'success';
+    } catch (error) {
+        console.error(error);
+        Promise.reject(error);
+        return error;
+    };
+};
+
 const testFunc = async (user_id: string, params: any) => {
     const object = JSON.parse(params);
     console.log('object', object);
@@ -329,6 +387,8 @@ interface IFirestore {
     updateUserSecurity: (user_id: string, params: any) => Promise<void>;
     updateUserAddress: (user_id: string, params: any) => Promise<void>;
     updateUserPersonal: (user_id: string, params: any) => Promise<void>;
+    deleteAccount: (user_id: string, params: any) => Promise<void>;
+    deleteAllInstitutions: (user_id: string, params: any) => Promise<void>;
 }
 
 module.exports = {
@@ -346,4 +406,6 @@ module.exports = {
     updateUserSecurity,
     updateUserAddress,
     updateUserPersonal,
+    deleteAccount,
+    deleteAllInstitutions,
 };

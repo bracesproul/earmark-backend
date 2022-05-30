@@ -47,7 +47,7 @@ router.get('/', async (req: any, res: any) => {
     let finalResponse;
     let finalStatus;
     let requestId;
-    // let accessTokens = new Array();
+    let accountsFormatted = new Array;
 
     // firebase query code
     const accessTokens = await updateFirestore.getAccessTokens(user_id);
@@ -55,16 +55,50 @@ router.get('/', async (req: any, res: any) => {
 
     for (let i = 0; i < accessTokens.length; i++) {
         /* @ts-ignore */
-        const request: AccountsGetRequest = {
+        const request: AuthGetRequest = {
             access_token: accessTokens[i],
         };
         try {
-            const response = await client.accountsGet(request);
+            // const response = await client.accountsGet(request);
+            const response = await client.authGet(request);
+            // console.log(response.data.numbers);
+            let finalHere = new Array;
+            const numbers = response.data.numbers;
             const accounts = response.data.accounts;
             const item = response.data.item
+            await response.data.accounts.forEach(async (accId: any) => {
+                const accountId = accId.account_id;
+                let accNum = new String;
+                let wireRouting = new String;
+                let routing = new String;
+                await numbers.ach.forEach((number: any) => {
+                    if (number.account_id === accountId) {
+                        accNum = number.account
+                        wireRouting = number.wire_routing
+                        routing = number.routing
+                    }
+                });
+                await accounts.forEach((account: any) => {
+                    let accType = account.type.charAt(0).toUpperCase() + account.type.slice(1);
+                    if (account.account_id === accountId) {
+                        finalHere.push({
+                            col1: account.name,
+                            col2: `$${account.balances.current}`,
+                            col3: accType,
+                            col4: accNum,
+                            col5: routing,
+                            col6: wireRouting,
+                            id: account.account_id,
+                            ins_id: item.institution_id,
+                        });
+                    }
+                })
+
+            });
+            console.log('finalHere: ', finalHere);
             requestId = response.data.request_id;
             finalResponse = {
-                accounts: accounts,
+                accounts: finalHere,
                 item: item,
                 statusCode: 200,
                 statusMessage: "Success",
