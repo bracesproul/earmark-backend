@@ -111,13 +111,15 @@ app.use('/api/plaid/institutions/search', validateApiKey, institutions_search);
 app.use('/api/plaid/item/get', validateApiKey, item_get);
 
 // all earmark api routes
-//ssrc\api\earmark\allTransactions
+//src\api\earmark\dashboard
 const earmark_allAccountInfo = require('./earmark/allAccountInfo');
 const earmark_allTransactions = require('./earmark/allTransactions');
 const earmark_balance = require('./earmark/balance');
 const earmarkPublic_tokenExchange = require('./earmark/public_token/exchange');
 const getTransactionsByAccount = require('./earmark/getTransactionsByAccount')
 const allTransactionsByCategory = require('./earmark/allTransactionsByCategory');
+const recurring = require('./earmark/recurring');
+const earmark_dashboard = require('./earmark/dashboard');
 
 app.use('/api/earmark/allAccountInfo', validateApiKey, earmark_allAccountInfo);
 app.use('/api/earmark/allTransactions', validateApiKey, earmark_allTransactions);
@@ -125,6 +127,8 @@ app.use('/api/earmark/balance', validateApiKey, earmark_balance);
 app.use('/api/earmark/public_token/exchange', validateApiKey, earmarkPublic_tokenExchange);
 app.use('/api/earmark/getTransactionsByAccount', validateApiKey, getTransactionsByAccount);
 app.use('/api/earmark/allTransactionsByCategory', validateApiKey, allTransactionsByCategory);
+app.use('/api/earmark/recurring', validateApiKey, recurring);
+app.use('/api/earmark/dashboard', validateApiKey, earmark_dashboard);
 
 // firebase routes
 const firestore = require('./firebase/firestore');

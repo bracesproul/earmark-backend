@@ -7,7 +7,7 @@ import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling';
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const updateFirestoreE = require('../../../../lib/firebase/firestore/');
+const updateFirestoreE = require('../../../../lib/firebase/firestore');
 const { Configuration, PlaidApi, PlaidEnvironments, ItemPublicTokenExchangeRequest } = require("plaid");
 const { initializeApp } = require("firebase/app");
 const { getFirestore, doc, setDoc } = require("firebase/firestore");
@@ -65,6 +65,9 @@ router.post('/', async (req: any, res: any, next: any) => {
   let finalStatus;
   let institution_id;
   let available_products;
+  let account_data = new Array;
+  let account_types = new Array;
+  let account_ids = new Array;
 
     /* @ts-ignore */
   const request: ItemPublicTokenExchangeRequest = {
@@ -72,43 +75,47 @@ router.post('/', async (req: any, res: any, next: any) => {
   };
 
   try {
-    console.log('exchange token called');
     const response = await client.itemPublicTokenExchange(request);
     const accessToken = response.data.access_token;
     /* @ts-ignore */
     const itemGetRequest: ItemGetRequest = {
       access_token: accessToken,
     };
+    /* @ts-ignore */
+    const authRequest: AuthGetRequest = {
+      access_token: accessToken,
+    };
     const itemGetResponse = await client.itemGet(itemGetRequest);
+    const authResponse = await client.authGet(authRequest);
+    authResponse.data.accounts.forEach((account: any) => {
+      account_data.push({account_data: {
+        subtype: account.subtype,
+        name: account.name,
+        account_id: account.account_id,
+      }});
+      account_types.push(account.subtype);
+      account_ids.push(account.account_id);
+    });
+    console.log('authResponse', authResponse.data);
     available_products = itemGetResponse.data.item.available_products;
-    available_products.push("transactions");
+    itemGetResponse.data.item.billed_products.forEach((product:any) => {
+      available_products.push(product);
+    });
     institution_id = itemGetResponse.data.item.institution_id;
 
-    console.log(response.data);
     const itemId = response.data.item_id;
     const params = {
-      userId: userId,
-      accessToken: accessToken,
-      itemId: itemId,
-      institutionId: institution_id,
-      availableProducts: available_products
+      user_id: userId,
+      access_token: accessToken,
+      item_id: itemId,
+      institution_id: institution_id,
+      available_products: available_products,
+      account_data: account_data,
+      account_types: account_types,
+      account_ids: account_ids,
     }
-    await updateFirestoreE.createUser(userId, params)
-    /*
-    await updateFirestore(userId, accessToken, itemId, institution_id, available_products)
-    .then(async () => {
-      console.log('updated firestore - /api/earmark/public_token/exchange');
-    })
-    .catch((error:any) => {
-      console.error("Error writing document - /api/earmark/public_token/exchange");
-      console.error("Error writing document: ", error);
-      finalStatus = 400;
-      finalResponse = {
-          error: error,
-          message: "Error writing document - /api/earmark/public_token/exchange"
-      };
-    })
-    */
+
+    await updateFirestoreE.addAccessTokens(userId, params);
 
     finalResponse = "Successfully generated access token";
     finalStatus = 200;
@@ -131,7 +138,8 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
     };
     finalStatus = 400;
-    console.log('INSIDE CATCH');
+    console.log('INSIDE CATCH ptoken exchange');
+    console.error(error);
   }
 
   await res.status(finalStatus);

@@ -48,6 +48,7 @@ router.get('/', async (req: any, res: any) => {
     let finalStatus;
     let requestId;
     let accountsFormatted = new Array;
+    let allAccounts = new Array;
 
     // firebase query code
     const accessTokens = await updateFirestore.getAccessTokens(user_id);
@@ -79,7 +80,8 @@ router.get('/', async (req: any, res: any) => {
                     }
                 });
                 await accounts.forEach((account: any) => {
-                    let accType = account.type.charAt(0).toUpperCase() + account.type.slice(1);
+                    console.log('ACC SUBTYPE: ', account.subtype);
+                    let accType = account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1);
                     if (account.account_id === accountId) {
                         finalHere.push({
                             col1: account.name,
@@ -95,10 +97,22 @@ router.get('/', async (req: any, res: any) => {
                 })
 
             });
-            console.log('finalHere: ', finalHere);
+            finalHere.forEach((finalAccount:any) => {
+                allAccounts.push(finalAccount);
+            })
+            console.log('all accs: ', allAccounts);
+
+            // for dash
+            // acc name
+            // acc balance
+            // acc last four
+            // ins name
+
+
+
             requestId = response.data.request_id;
             finalResponse = {
-                accounts: finalHere,
+                accounts: allAccounts,
                 item: item,
                 statusCode: 200,
                 statusMessage: "Success",

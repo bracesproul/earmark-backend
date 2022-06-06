@@ -63,6 +63,49 @@ const getAccessTokensTransactions = async (user_id: string) => {
     };
 };
 
+const getAccessTokensRecurringTransactions = async (user_id: string) => {
+    try {
+        let accessTokens = new Array;
+        let account_ids = new Array;
+        const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("account_types", "array-contains-any", ['savings', 'checking', 'credit card']);
+        const snapshot = await accessTokensRef.get();
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+        return;
+        }
+        snapshot.forEach((doc:any) => {
+            accessTokens.push(doc.data().access_token);
+        });
+        Promise.resolve(accessTokens);
+        return accessTokens;
+    } catch (error) {
+        console.error(error);
+        Promise.reject(error);
+        return error;
+    };
+};
+
+const getAccountIdsRecurring = async (user_id: string) => {
+    try {
+        let account_ids = new Array;
+        const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("account_types", "array-contains-any", ['savings', 'checking', 'credit card']);
+        const snapshot = await accessTokensRef.get();
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+        return;
+        }
+        snapshot.forEach((doc:any) => {
+            account_ids.push(doc.data().account_ids);
+        });
+        Promise.resolve(account_ids);
+        return account_ids;
+    } catch (error) {
+        console.error(error);
+        Promise.reject(error);
+        return error;
+    };
+};
+
 const getAccessTokensInstitution = async (user_id: string, params: any) => {
     const parsedObject = JSON.parse(params);
     const { institution_id } = parsedObject;
@@ -86,19 +129,21 @@ const getAccessTokensInstitution = async (user_id: string, params: any) => {
     };
 };
 
-const createUser = async (user_id: string, params: any) => {
-    const parsedObject = JSON.parse(params);
-    const { access_token, item_id, institution_Id, available_products } = parsedObject;
+const addAccessTokens = async (user_id: string, params: any) => {
+    const { access_token, item_id, institution_id, available_products, account_data, account_types, account_ids } = params;
     try {
         const docData = {
             access_token: access_token,
             item_id: item_id,
             user_id: user_id,
-            institution_id: institution_Id,
+            institution_id: institution_id,
             available_products: available_products,
+            account_data: account_data,
+            account_types: account_types,
+            account_ids: account_ids,
         }
-        const res = await adminDb.collection('users').doc(user_id).set(docData);
-        Promise.resolve();
+        const res = await adminDb.collection('users').doc(user_id).collection('access_tokens').doc(item_id).set(docData, { merge: true });
+        Promise.resolve(res);
         return 'success';
     } catch (error) {
         console.error(error);
@@ -375,8 +420,10 @@ interface IFirestore {
     updateUser: (user_id: string, params: any) => Promise<void>;
     getAccessTokens: (userId: string) => Promise<void>;
     getAccessTokensTransactions: (userId: string) => Promise<void>;
+    getAccessTokensRecurringTransactions: (userId: string) => Promise<void>;
+    getAccountIdsRecurring: (userId: string) => Promise<void>;
     getAccessTokensInstitution: (user_id: string, params: any) => Promise<void>;
-    createUser: (user_id: string, params: any) => Promise<void>;
+    addAccessTokens: (user_id: string, params: any) => Promise<void>;
     updateAccountElement: (user_id: string, params: any) => Promise<void>;
     addSecurityChangelog: (user_id: string, params: any) => Promise<void>;
     createUserEntry: (user_id: string, params: any) => Promise<void>;
@@ -395,7 +442,10 @@ module.exports = {
     updateUser, 
     getAccessTokens,
     getAccessTokensTransactions,
+    getAccessTokensRecurringTransactions,
+    getAccountIdsRecurring,
     getAccessTokensInstitution,
+    addAccessTokens,
     updateAccountElement,
     addSecurityChangelog,
     createUserEntry,

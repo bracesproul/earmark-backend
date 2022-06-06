@@ -1,0 +1,167 @@
+{
+    "seed": "my-seed-string-3",
+    "override_accounts": [
+      {
+        "type": "depository",
+        "subtype": "checking",
+        "identity": {
+          "names": [
+            "John Doe"
+          ],
+          "phone_numbers": [
+            {
+              "primary": true,
+              "type": "home",
+              "data": "4673956022"
+            }
+          ],
+          "emails": [
+            {
+              "primary": true,
+              "type": "primary",
+              "data": "accountholder0@example.com"
+            }
+          ],
+          "addresses": [
+            {
+              "primary": true,
+              "data": {
+                "city": "Malakoff",
+                "region": "NY",
+                "street": "2992 Cameron Road",
+                "postal_code": "14236",
+                "country": "US"
+              }
+            }
+          ]
+        },
+        "transactions": [
+          {
+            "date_transacted": "2019-10-01",
+            "date_posted": "2019-10-03",
+            "currency": "USD",
+            "amount": 100,
+            "description": "1 year Netflix subscription"
+          },
+          {
+            "date_transacted": "2019-10-01",
+            "date_posted": "2019-10-02",
+            "currency": "USD",
+            "amount": 100,
+            "description": "1 year mobile subscription"
+          }
+        ]
+      },
+      {
+        "type": "loan",
+        "subtype": "student",
+        "liability": {
+          "type": "student",
+          "origination_date": "2020-01-01",
+          "principal": 10000,
+          "nominal_apr": 6.25,
+          "loan_name": "Plaid Student Loan",
+          "repayment_model": {
+            "type": "standard",
+            "non_repayment_months": 12,
+            "repayment_months": 120
+          }
+        }
+      },
+      {
+        "type": "credit",
+        "subtype": "credit card",
+        "starting_balance": 10000,
+        "inflow_model": {
+          "type": "monthly-interest-only-payment",
+          "payment_day_of_month": 15,
+          "statement_day_of_month": 13,
+          "transaction_name": "Interest Payment"
+        },
+        "liability": {
+          "type": "credit",
+          "purchase_apr": 12.9,
+          "balance_transfer_apr": 15.24,
+          "cash_apr": 28.45,
+          "special_apr": 0,
+          "last_payment_amount": 500,
+          "minimum_payment_amount": 10
+        }
+      },
+      {
+        "type": "investment",
+        "subtype": "brokerage",
+        "investment_transactions": [
+          {
+            "date": "2021-07-01",
+            "name": "buy stock",
+            "quantity": 10,
+            "price": 10,
+            "fees": 20,
+            "type": "buy",
+            "currency": "USD",
+            "security": {
+              "ticker_symbol": "PLAID",
+              "currency": "USD"
+            }
+          }
+        ],
+        "holdings": [
+          {
+            "institution_price": 10,
+            "institution_price_as_of": "2021-08-01",
+            "cost_basis": 10,
+            "quantity": 10,
+            "currency": "USD",
+            "security": {
+              "ticker_symbol": "PLAID",
+              "currency": "USD"
+            }
+          }
+        ]
+      },
+      {
+        "type": "payroll",
+        "subtype": "payroll",
+        "income": {
+          "paystubs": [
+            {
+              "employer": {
+                "name": "Heartland Toy Company"
+              },
+              "employee": {
+                "name": "Chip Hazard",
+                "address": {
+                  "city": "Burbank",
+                  "region": "CA",
+                  "street": "411 N Hollywood Way",
+                  "postal_code": "91505",
+                  "country": "US"
+                }
+              },
+              "income_breakdown": [
+                {
+                  "type": "regular",
+                  "rate": 20,
+                  "hours": 40,
+                  "total": 800
+                },
+                {
+                  "type": "overtime",
+                  "rate": 30,
+                  "hours": 6.68,
+                  "total": 200.39
+                }
+              ],
+              "pay_period_details": {
+                "start_date": "2021-05-04",
+                "end_date": "2021-05-18",
+                "gross_earnings": 1000.39,
+                "check_amount": 499.28
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
