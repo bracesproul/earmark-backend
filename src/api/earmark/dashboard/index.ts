@@ -87,11 +87,12 @@ const getPrevDatesArray = (startRange: number, endRange: number) => {
 const spendingOverviewFunction = async (transactionsResponse: any) => {
     let finalSpendingOverview = new Array();
     transactionsResponse.forEach((transaction: any) => {
+        const amount = Math.abs(transaction.amount);
         if (!transaction.merchant_name) return;
         finalSpendingOverview.push({
             name: transaction.merchant_name,
             date: transaction.date,
-            amount: transaction.amount,
+            amount: amount,
             category: makeFirstLetterUpperCase(transaction.personal_finance_category.primary),
         })
     });
@@ -106,13 +107,14 @@ const topMerchantsFunction = async (transactionsResponse: any) => {
     let frequentMerchants: any = new Array();
 
     transactionsResponse.forEach((transaction: any) => {
+        const amount = Math.abs(transaction.amount);
         if (!transaction.merchant_name) return;
         let merchantName: string = transaction.merchant_name.replaceAll(/\W/g, '_');
         if (!transactionNameCountObject[merchantName]) {
             transactionNameCountObject[merchantName] = {
                 count: 1,
                 endDate: transaction.date,
-                amount: transaction.amount,
+                amount: amount,
                 allAmounts: [transaction.amount],
             }
         }
@@ -121,7 +123,7 @@ const topMerchantsFunction = async (transactionsResponse: any) => {
             endDate: transactionNameCountObject[merchantName].endDate,
             startDate: transaction.date,
             category: transaction.personal_finance_category.primary,
-            amount: transactionNameCountObject[merchantName].amount + transaction.amount,
+            amount: transactionNameCountObject[merchantName].amount + amount,
             allAmounts: transactionNameCountObject[merchantName].allAmounts.concat(transaction.amount),
             normalMerchantName: transaction.merchant_name,
         }
@@ -166,7 +168,7 @@ const totalSpendingFunction = async (transactionsResponse: any) => {
     const date = new Date();
     const today = date.toISOString().split('T')[0] 
     const momentDate = moment();
-    const yesterday = momentDate.subtract(1, 'days');
+    const yesterday = momentDate.subtract(1, 'days').format('YYYY-MM-DD');
     const week = getDatesArray(7);
     const lastWeek = getPrevDatesArray(7, 14);
     const month = getDatesArray(30);
@@ -229,6 +231,10 @@ router.get('/', async (req: any, res: any, next: any) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     const queryType = req.query.queryType;
+    const spendingStartDate = req.query.spendingStartDate;
+    const spendingEndDate = req.query.spendingEndDate;
+    const merchantsStartDate = req.query.merchantsStartDate;
+    const merchantsEndDate = req.query.merchantsEndDate;
 
 
     // ERROR HANDLING, CHECKS FOR MISSING PARAMS
@@ -268,12 +274,24 @@ router.get('/', async (req: any, res: any, next: any) => {
             requestIds.push(response.data.request_id);
 
             if (queryType === 'spendingOverview') {
+                // @ts-ignore
+                const spendingRequest: TransactionsGetRequest = {
+                    access_token: accessTokens[i],
+                    start_date: spendingStartDate,
+                    end_date: spendingEndDate,
+                    options: {
+                        include_personal_finance_category: true,
+                    },
+                };
+                const spendingResponse = await client.transactionsGet(spendingRequest);
+                const spendingTransactions = spendingResponse.data.transactions;
+
                 finalResponse = {
-                    spendingOverview: await spendingOverviewFunction(transactionsResponse),
+                    spendingOverview: await spendingOverviewFunction(spendingTransactions),
                     statusCode: 200,
                     statusMessage: "Success",
                     metaData: {
-                        spendingOverviewDates: [startDate, endDate],
+                        spendingOverviewDates: [spendingStartDate, spendingEndDate],
                         user_id: user_id,
                         requestTime: new Date().toLocaleString(),
                         requestIds: requestIds,
@@ -283,12 +301,24 @@ router.get('/', async (req: any, res: any, next: any) => {
                     },
                   };
             } else if (queryType === 'topMerchants') {
+                // @ts-ignore
+                const merchantsRequest: TransactionsGetRequest = {
+                    access_token: accessTokens[i],
+                    start_date: merchantsStartDate,
+                    end_date: merchantsEndDate,
+                    options: {
+                        include_personal_finance_category: true,
+                    },
+                };
+                const merchantsResponse = await client.transactionsGet(merchantsRequest);
+                const merchantsTransactions = merchantsResponse.data.transactions;
+
                 finalResponse = {
-                    topMerchants: await topMerchantsFunction(transactionsResponse),
+                    topMerchants: await topMerchantsFunction(merchantsTransactions),
                     statusCode: 200,
                     statusMessage: "Success",
                     metaData: {
-                        spendingOverviewDates: [startDate, endDate],
+                        spendingOverviewDates: [merchantsStartDate, merchantsEndDate],
                         user_id: user_id,
                         requestTime: new Date().toLocaleString(),
                         requestIds: requestIds,

@@ -16,3 +16,15 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 ### Changed
+
+
+## [0.0.2] - 2022-06-5
+
+### Notes
+
+#### Added
+- Added new api queries to fetch data based off date range supplied by frontend api call
+
+### Fixed
+
+### Changed
