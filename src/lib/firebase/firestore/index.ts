@@ -130,7 +130,7 @@ const getAccessTokensInstitution = async (user_id: string, params: any) => {
 };
 
 const addAccessTokens = async (user_id: string, params: any) => {
-    const { access_token, item_id, institution_id, available_products, account_data, account_types, account_ids } = params;
+    const { access_token, item_id, institution_id, available_products, account_data, account_types, account_ids, institution_name } = params;
     try {
         const docData = {
             access_token: access_token,
@@ -141,6 +141,7 @@ const addAccessTokens = async (user_id: string, params: any) => {
             account_data: account_data,
             account_types: account_types,
             account_ids: account_ids,
+            institution_name: institution_name,
         }
         const res = await adminDb.collection('users').doc(user_id).collection('access_tokens').doc(item_id).set(docData, { merge: true });
         Promise.resolve(res);

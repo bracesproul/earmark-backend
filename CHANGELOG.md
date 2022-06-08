@@ -28,3 +28,18 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 ### Changed
+
+
+## [0.0.3] - 2022-06-7
+
+### Notes
+
+#### Added
+- Added /api/earmark/visualize for fetching data to populate charts on the /dashboard/visualize page
+    - Added functions for transaction data on line charts, bar charts, and pie charts
+
+### Fixed
+- Fixed schema for account data inside firebase access_tokens document
+
+### Changed
+- Updated the public_token_exchange to write the institution name to firebase

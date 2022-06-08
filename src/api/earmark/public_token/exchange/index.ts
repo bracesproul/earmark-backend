@@ -85,14 +85,24 @@ router.post('/', async (req: any, res: any, next: any) => {
     const authRequest: AuthGetRequest = {
       access_token: accessToken,
     };
+
     const itemGetResponse = await client.itemGet(itemGetRequest);
     const authResponse = await client.authGet(authRequest);
+    institution_id = itemGetResponse.data.item.institution_id;
+    // @ts-ignore
+    const insRequest: InstitutionsGetByIdRequest = {
+      institution_id: institution_id,
+      country_codes: ['US'],
+    };
+    const insResponse = await client.institutionsGetById(insRequest);
+    const institution_name = insResponse.data.institution.name;
     authResponse.data.accounts.forEach((account: any) => {
-      account_data.push({account_data: {
+      account_data.push({
         subtype: account.subtype,
         name: account.name,
         account_id: account.account_id,
-      }});
+        institution_name: institution_name,
+      });
       account_types.push(account.subtype);
       account_ids.push(account.account_id);
     });
@@ -101,7 +111,6 @@ router.post('/', async (req: any, res: any, next: any) => {
     itemGetResponse.data.item.billed_products.forEach((product:any) => {
       available_products.push(product);
     });
-    institution_id = itemGetResponse.data.item.institution_id;
 
     const itemId = response.data.item_id;
     const params = {
@@ -113,6 +122,7 @@ router.post('/', async (req: any, res: any, next: any) => {
       account_data: account_data,
       account_types: account_types,
       account_ids: account_ids,
+      institution_name: institution_name,
     }
 
     await updateFirestoreE.addAccessTokens(userId, params);
