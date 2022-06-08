@@ -389,7 +389,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     const queryType = req.query.queryType;
-    console.log('cookies', req.cookie);
 
     // ERROR HANDLING, CHECKS FOR MISSING PARAMS
     const requiredParams = ['user_id', 'startDate', 'endDate'];

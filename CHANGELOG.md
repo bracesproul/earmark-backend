@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## [0.0.1] - 2022-06-5
+## [0.0.1] - 2022-06-05
 
 ### Notes
 
@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 
-## [0.0.2] - 2022-06-5
+## [0.0.2] - 2022-06-05
 
 ### Notes
 
@@ -30,7 +30,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 
-## [0.0.3] - 2022-06-7
+## [0.0.3] - 2022-06-07
 
 ### Notes
 Commit ID: [main 11d1d9c](https://github.com/bracesproul/earmark-backend/commit/11d1d9c)
@@ -46,10 +46,10 @@ Commit ID: [main 11d1d9c](https://github.com/bracesproul/earmark-backend/commit/
 - Updated the public_token_exchange to write the institution name to firebase
 
 
-## [0.0.4] - 2022-06-8
+## [0.0.4] - 2022-06-08
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main db45502](https://github.com/bracesproul/earmark-backend/commit/db45502)
 
 #### Added
 - Added /api/earmark/getDynamicTransactions for fetching data to populate dynamic transactions table on the /dashboard/[ins_id] page
@@ -58,3 +58,21 @@ Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
 ### Fixed
 
 ### Changed
+
+
+## [0.0.5] - 2022-06-08
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+#### Added
+- Added [/parseNumbers](https://github.com/bracesproul/earmark-backend/tree/main/src/lib/parseNumbers) to lib as exported function for parsing numbers (take txn amount, turn postive, round to 2 decimal places || add ending 0 if only 1 decimal place)
+- Added `negativeNumber` key to response object for [spending overview, top merchants](https://github.com/bracesproul/earmark-backend/blob/main/src/api/earmark/dashboard/index.ts) for frontend to know if number is negative (for table row color)
+- Added `id` data point to response object for [spending overview, top merchants](https://github.com/bracesproul/earmark-backend/blob/main/src/api/earmark/dashboard/index.ts)
+
+### Fixed
+- Added the [parseNumbers()](https://github.com/bracesproul/earmark-backend/tree/main/src/lib/parseNumbers) method to [getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions) to properly parse transaction amounts
+
+### Changed
+- Changed returned amounts for [getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions) to string with `$` prefix
+- Changed all files which parse transaction amounts to use [parseNumbers](https://github.com/bracesproul/earmark-backend/tree/main/src/lib/parseNumbers)

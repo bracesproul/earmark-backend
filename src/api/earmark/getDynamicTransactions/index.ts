@@ -2,7 +2,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
-const uniqid = require('uniqid');
+const parseNumbers = require('../../../lib/parseNumbers');
 const globalVars = require('../../../lib/globalVars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const updateFirestore = require('../../../lib/firebase/firestore/');
@@ -107,10 +107,10 @@ router.get('/', async (req: any, res: any, next: any) => {
                 if (!transaction.merchant_name) name = transaction.name;
                 if (account.account.account_id === transaction.account_id) {
                     account.account.transactions.push({
-                        id: transaction.transaction_id + uniqid(),
+                        id: transaction.transaction_id,
                         col1: name,
                         col2: transaction.date,
-                        col3: transaction.amount,
+                        col3: parseNumbers(transaction.amount),
                         col4: category,
                     });
                 }

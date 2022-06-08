@@ -11,6 +11,7 @@
 /* eslint-disable */
 import axios from 'axios';
 import dotenv from 'dotenv';
+const parseNumbers = require('../../../lib/parseNumbers');
 dotenv.config();
 const globalvars = require('../../../lib/globalvars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
@@ -41,7 +42,7 @@ const deleteByValue = (array: Array<any>, value: Number) => {
     if (index !== -1) {
         array.splice(index, 1);
     }
-}
+};
 
 const makeFirstLetterUpperCase = (string: String) => {
     string = string.split('_').join(' ');
@@ -50,16 +51,11 @@ const makeFirstLetterUpperCase = (string: String) => {
     .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
     .join(' ');
     return string;
-}
+};
 
-const roundUnevenNumbers = (number: number) => {
-    if (number === 0) return 0;
-    const numString = number.toString();
-    if (numString.includes('.')) {
-        numString.split('.')[1].length > 2 ? number = parseFloat(numString.split('.')[0] + '.' + numString.split('.')[1].slice(0, 2)) : number = parseFloat(numString);
-        return number;
-    }
-    return parseInt(numString);
+const checkForNegativeNumber = (number: number) => {
+    if (number < 0) return true;
+    return false;
 };
 
 const getDatesArray = (range: number) => {
@@ -71,7 +67,7 @@ const getDatesArray = (range: number) => {
         datesArray.push(startDate);
     }
     return datesArray;
-}
+};
 
 const getPrevDatesArray = (startRange: number, endRange: number) => {
     let datesArray = new Array();
@@ -82,18 +78,21 @@ const getPrevDatesArray = (startRange: number, endRange: number) => {
         datesArray.push(startDate);
     }
     return datesArray;
-}
+};
+
 // spending overview function
 const spendingOverviewFunction = async (transactionsResponse: any) => {
     let finalSpendingOverview = new Array();
     transactionsResponse.forEach((transaction: any) => {
-        const amount = Math.abs(transaction.amount);
-        if (!transaction.merchant_name) return;
+        const amount = parseNumbers(transaction.amount);
+        let name = transaction.merchant_name
+        if (!transaction.merchant_name) name = transaction.name;
         finalSpendingOverview.push({
-            name: transaction.merchant_name,
+            name: name,
             date: transaction.date,
             amount: amount,
             category: makeFirstLetterUpperCase(transaction.personal_finance_category.primary),
+            id: transaction.transaction_id
         })
     });
     return finalSpendingOverview;
@@ -107,7 +106,8 @@ const topMerchantsFunction = async (transactionsResponse: any) => {
     let frequentMerchants: any = new Array();
 
     transactionsResponse.forEach((transaction: any) => {
-        const amount = Math.abs(transaction.amount);
+        const amount = transaction.amount;
+        const rawAmount = transaction.amount.toFixed(2);
         if (!transaction.merchant_name) return;
         let merchantName: string = transaction.merchant_name.replaceAll(/\W/g, '_');
         if (!transactionNameCountObject[merchantName]) {
@@ -115,7 +115,7 @@ const topMerchantsFunction = async (transactionsResponse: any) => {
                 count: 1,
                 endDate: transaction.date,
                 amount: amount,
-                allAmounts: [transaction.amount],
+                allAmounts: [rawAmount],
             }
         }
         transactionNameCountObject[merchantName] = {
@@ -126,6 +126,7 @@ const topMerchantsFunction = async (transactionsResponse: any) => {
             amount: transactionNameCountObject[merchantName].amount + amount,
             allAmounts: transactionNameCountObject[merchantName].allAmounts.concat(transaction.amount),
             normalMerchantName: transaction.merchant_name,
+            id: transaction.transaction_id
         }
     });
 
@@ -148,9 +149,10 @@ const topMerchantsFunction = async (transactionsResponse: any) => {
                 startDate: transactionNameCountObject[transactionKeys[i]].startDate,
                 endDate: transactionNameCountObject[transactionKeys[i]].endDate,
                 category: makeFirstLetterUpperCase(transactionNameCountObject[transactionKeys[i]].category),
-                totalSpent: roundUnevenNumbers(transactionNameCountObject[transactionKeys[i]].amount),
+                totalSpent: parseNumbers(transactionNameCountObject[transactionKeys[i]].amount),
                 allAmounts: transactionNameCountObject[transactionKeys[i]].allAmounts,
                 name: transactionNameCountObject[transactionKeys[i]].normalMerchantName,
+                id: transactionNameCountObject[transactionKeys[i]].id
             });
         };
     };
@@ -204,27 +206,25 @@ const totalSpendingFunction = async (transactionsResponse: any) => {
         {
             timeFrame: 'Today',
             change: dailyChange,
-            amount: roundUnevenNumbers(totalSpentToday),
+            amount: parseNumbers(totalSpentToday),
             text: 'Total spent today',
         },
         {
             timeFrame: '7 Days',
             change: weeklyChange,
-            amount: roundUnevenNumbers(totalSpentWeek),
+            amount: parseNumbers(totalSpentWeek),
             text: 'Total spent in the last 7 days',
         },
         {
             timeFrame: '30 Days',
             change: monthlyChange,
-            amount: roundUnevenNumbers(totalSpentMonth),
+            amount: parseNumbers(totalSpentMonth),
             text: 'Total spent in the last 30 days',
         }
     ]
 };
 
 const client = new PlaidApi(configuration);
-
-const API_URL = globalvars().API_URL;
 
 router.get('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
@@ -256,7 +256,7 @@ router.get('/', async (req: any, res: any, next: any) => {
     const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
 
     let finalResponse;
-    let finalStatus = 400;
+    let finalStatus;
     let requestIds = new Array();
     for (let i = 0; i < accessTokens.length; i++) {
         try {
@@ -300,6 +300,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         method: "GET",
                     },
                   };
+                  finalStatus = 200;
             } else if (queryType === 'topMerchants') {
                 // @ts-ignore
                 const merchantsRequest: TransactionsGetRequest = {
@@ -312,7 +313,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 };
                 const merchantsResponse = await client.transactionsGet(merchantsRequest);
                 const merchantsTransactions = merchantsResponse.data.transactions;
-
+                console.log('top merchants running')
                 finalResponse = {
                     topMerchants: await topMerchantsFunction(merchantsTransactions),
                     statusCode: 200,
@@ -327,6 +328,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         method: "GET",
                     },
                   };
+                  finalStatus = 200;
             }
             else if (queryType === 'totalSpending') {
                 finalResponse = {
@@ -343,6 +345,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         method: "GET",
                     },
                   };
+                  finalStatus = 200;
             }
             finalResponse = finalResponse;
             finalStatus = 200;
