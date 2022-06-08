@@ -23,7 +23,8 @@
     "firebase-admin": "^10.2.0",
     "moment": "^2.29.3",
     "morgan": "^1.10.0",
-    "plaid": "^10.3.0"
+    "plaid": "^10.3.0",
+    "uniqid": "^5.4.0"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",

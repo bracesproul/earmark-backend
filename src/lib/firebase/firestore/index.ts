@@ -407,6 +407,34 @@ const deleteAllInstitutions = async (user_id: string, params: any) => {
     };
 };
 
+const getDynamicTransactions = async (user_id: string, page_id: string) => {
+        try {
+            console.log('see')
+            let accountInfo: any = new Array();
+            let accessTokens: string = '';
+            const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("institution_id", '==', page_id);
+            const snapshot = await accessTokensRef.get();
+            if (snapshot.empty) {
+                console.log('No matching documents.');
+            return;
+            }
+            snapshot.forEach((doc:any) => {
+                accessTokens = doc.data().access_token;
+                accountInfo = {
+                    access_token: doc.data().access_token,
+                    account_data: doc.data().account_data,
+                    institution_name: doc.data().institution_name,
+                }
+            });
+            Promise.resolve(accessTokens);
+            return {accessTokens, accountInfo};
+        } catch (error) {
+            console.error(error);
+            Promise.reject(error);
+            return error;
+        };
+};
+
 const testFunc = async (user_id: string, params: any) => {
     const object = JSON.parse(params);
     console.log('object', object);
@@ -437,6 +465,7 @@ interface IFirestore {
     updateUserPersonal: (user_id: string, params: any) => Promise<void>;
     deleteAccount: (user_id: string, params: any) => Promise<void>;
     deleteAllInstitutions: (user_id: string, params: any) => Promise<void>;
+    getDynamicTransactions: (user_id: string, page_id: string) => Promise<void>;
 }
 
 module.exports = {
@@ -459,4 +488,5 @@ module.exports = {
     updateUserPersonal,
     deleteAccount,
     deleteAllInstitutions,
+    getDynamicTransactions,
 };

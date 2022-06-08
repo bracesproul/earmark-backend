@@ -121,6 +121,7 @@ const allTransactionsByCategory = require('./earmark/allTransactionsByCategory')
 const recurring = require('./earmark/recurring');
 const earmark_dashboard = require('./earmark/dashboard');
 const earmark_visuals = require('./earmark/visuals');
+const earmark_getDynamicTransactions = require('./earmark/getDynamicTransactions');
 
 app.use('/api/earmark/allAccountInfo', validateApiKey, earmark_allAccountInfo);
 app.use('/api/earmark/allTransactions', validateApiKey, earmark_allTransactions);
@@ -131,6 +132,7 @@ app.use('/api/earmark/allTransactionsByCategory', validateApiKey, allTransaction
 app.use('/api/earmark/recurring', validateApiKey, recurring);
 app.use('/api/earmark/dashboard', validateApiKey, earmark_dashboard);
 app.use('/api/earmark/visuals', validateApiKey, earmark_visuals);
+app.use('/api/earmark/getDynamicTransactions', validateApiKey, earmark_getDynamicTransactions);
 // firebase routes
 const firestore = require('./firebase/firestore');
 
