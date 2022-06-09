@@ -12,7 +12,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
-const globalvars = require('../../../lib/globalvars');
+const globalvars = require('../../../lib/globalVars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const updateFirestore = require('../../../lib/firebase/firestore/');
 const express = require('express');
