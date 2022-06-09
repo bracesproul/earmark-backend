@@ -103,6 +103,13 @@ router.get('/', async (req: any, res: any, next: any) => {
         data.transactions.forEach((transaction: any) => {
             accounts.forEach((account: any) => {
                 let name = transaction.merchant_name;
+                let amount;
+                let fontWeight = 'normal';
+                if (Math.sign(transaction.amount) === -1) {
+                    amount = parseNumbers(transaction.amount);
+                    amount = `-$${amount.split('-')[1]}`;
+                    fontWeight = 'bold';
+                } else amount = `$${parseNumbers(transaction.amount)}`;
                 const category = makeFirstLetterUpperCase(transaction.personal_finance_category.primary);
                 if (!transaction.merchant_name) name = transaction.name;
                 if (account.account.account_id === transaction.account_id) {
@@ -110,8 +117,9 @@ router.get('/', async (req: any, res: any, next: any) => {
                         id: transaction.transaction_id,
                         col1: name,
                         col2: transaction.date,
-                        col3: parseNumbers(transaction.amount),
+                        col3: amount,
                         col4: category,
+                        fontWeight: fontWeight,
                     });
                 }
             });

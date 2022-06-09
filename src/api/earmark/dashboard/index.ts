@@ -224,6 +224,55 @@ const totalSpendingFunction = async (transactionsResponse: any) => {
     ]
 };
 
+const accountDetails = async (insSearchResponse: any, data: any, ins_id: string) => {
+    const institution_name = insSearchResponse.data.institution.name;
+    let accountDetails: any = new Array();
+
+    data.accounts.forEach((account: any) => {
+        if (accountDetails.length === 0) {
+            accountDetails.push({
+                institution: institution_name,
+                ins_id: ins_id,
+                accounts: [{
+                    accountId: account.account_id,
+                    balance: parseNumbers(account.balances.available),
+                    name: account.name,
+                    subtype: account.subtype,
+                    ins_id: ins_id,
+                    institution_name_normal: institution_name,
+                    accountNumber: 0,
+                    institutionName: institution_name.split(' ').join('_'),
+                }]
+            });
+            return;
+        };
+        accountDetails.forEach((accountDetail: any) => {
+            if (accountDetail.ins_id === ins_id) {
+                accountDetail.accounts.push({
+                    accountId: account.account_id,
+                    balance: parseNumbers(account.balances.available),
+                    name: account.name,
+                    subtype: account.subtype,
+                    ins_id: ins_id,
+                    institution_name_normal: institution_name,
+                    accountNumber: 0,
+                    institutionName: institution_name.split(' ').join('_'),
+                });
+            }
+        });
+    });
+    data.numbers.ach.forEach((number: any) => {
+        accountDetails.forEach((account: any) => {
+            account.accounts.forEach((accountDetail: any) => {
+                if (accountDetail.accountId === number.account_id) {
+                    accountDetail.accountNumber = number.account;
+                }
+            });
+        });
+    });
+    return accountDetails;
+};
+
 const client = new PlaidApi(configuration);
 
 router.get('/', async (req: any, res: any, next: any) => {
@@ -337,6 +386,33 @@ router.get('/', async (req: any, res: any, next: any) => {
                     statusMessage: "Success",
                     metaData: {
                         spendingOverviewDates: [startDate, endDate],
+                        user_id: user_id,
+                        requestTime: new Date().toLocaleString(),
+                        requestIds: requestIds,
+                        nextApiUrl: "/api/earmark/dashboard",
+                        backendApiUrl: "/api/transactionsGet",
+                        method: "GET",
+                    },
+                  };
+                  finalStatus = 200;
+            } else if (queryType === 'accountDetails') {
+                // @ts-ignore
+                const authRequest: AuthGetRequest = {
+                    access_token: accessTokens[i],
+                };
+                const { data } = await client.authGet(authRequest);
+                const ins_id = data.item.institution_id;
+                // @ts-ignore
+                const request: InstitutionsGetByIdRequest = {
+                    institution_id: ins_id,
+                    country_codes: ['US'],
+                };
+                const insSearchResponse = await client.institutionsGetById(request);
+                finalResponse = {
+                    accountDetails: await accountDetails(insSearchResponse, data, ins_id),
+                    statusCode: 200,
+                    statusMessage: "Success",
+                    metaData: {
                         user_id: user_id,
                         requestTime: new Date().toLocaleString(),
                         requestIds: requestIds,

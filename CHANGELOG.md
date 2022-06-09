@@ -63,7 +63,7 @@ Commit ID: [main db45502](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.5] - 2022-06-08
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main 5847a2f](https://github.com/bracesproul/earmark-backend/commit/5847a2f)
 
 #### Added
 - Added [/parseNumbers](https://github.com/bracesproul/earmark-backend/tree/main/src/lib/parseNumbers) to lib as exported function for parsing numbers (take txn amount, turn postive, round to 2 decimal places || add ending 0 if only 1 decimal place)
@@ -76,3 +76,18 @@ Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
 ### Changed
 - Changed returned amounts for [getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions) to string with `$` prefix
 - Changed all files which parse transaction amounts to use [parseNumbers](https://github.com/bracesproul/earmark-backend/tree/main/src/lib/parseNumbers)
+
+
+## [0.0.6] - 2022-06-08
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+#### Added
+- Added `fontWeight` data point to response object for [/api/earmark/getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions), value is `bold` if transaction is a negative (credit) or normal if transaction is postive (debit)
+- Added accountDetails function to /api/earmark/dashboard route for fetching account details for the /dashboard page
+
+### Fixed
+
+### Changed
+- [/getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions) now parses transaction amounts as strings with `$` prefix (accounts for negative numbers)
