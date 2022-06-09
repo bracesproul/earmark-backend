@@ -13,7 +13,6 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 const parseNumbers = require('../../../lib/parseNumbers');
 dotenv.config();
-const globalvars = require('../../../lib/globalvars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const updateFirestore = require('../../../lib/firebase/firestore/');
 const express = require('express');

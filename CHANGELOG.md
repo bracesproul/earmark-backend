@@ -81,7 +81,7 @@ Commit ID: [main 5847a2f](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.6] - 2022-06-08
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main da7a075](https://github.com/bracesproul/earmark-backend/commit/da7a075)
 
 #### Added
 - Added `fontWeight` data point to response object for [/api/earmark/getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions), value is `bold` if transaction is a negative (credit) or normal if transaction is postive (debit)
