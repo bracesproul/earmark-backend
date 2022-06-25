@@ -36,13 +36,11 @@ router.get('/', async (req: any, res: any, next: any) => {
     let finalStatus = 400;
 
     if (queryType === 'datagrid') {
-        console.log(req.get('host'));
         let full_response;
         let dataGridTransactions = new Array;
         let transactionMetadata = new Array;
+        let categoriesAvail = new Array;
         const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
-    
-    
         for (let i = 0; i < accessTokens.length; i++) {
             try {
                 const config = {
@@ -63,6 +61,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 full_response = response.data;
     
                 response.data.transactions.transactions.forEach((transaction:any) => {
+                    categoriesAvail.push(transaction.personal_finance_category.primary);
                     dataGridTransactions.push({
                         id: transaction.transaction_id, 
                         col1: transaction.name, 
@@ -81,10 +80,12 @@ router.get('/', async (req: any, res: any, next: any) => {
                         }
                     });
                 });
-    
+                const uniqueChars = [...new Set(categoriesAvail)];
+                console.log(uniqueChars);
                 finalResponse = {
                     dataGridTransactions: dataGridTransactions,
                     transactionMetadata: transactionMetadata,
+                    categoriesAvail: uniqueChars,
                     statusCode: 200,
                     statusMessage: "Success",
                     metaData: {

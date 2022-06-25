@@ -84,6 +84,9 @@ router.get('/', async (req:any, res:any, next:any) => {
     access_token: access_token,
     start_date: startDate,
     end_date: endDate,
+    options: {
+      include_personal_finance_category: true
+    }
   };
 
   try {

@@ -91,3 +91,20 @@ Commit ID: [main da7a075](https://github.com/bracesproul/earmark-backend/commit/
 
 ### Changed
 - [/getDynamicTransactions](https://github.com/bracesproul/earmark-backend/tree/main/src/api/earmark/getDynamicTransactions) now parses transaction amounts as strings with `$` prefix (accounts for negative numbers)
+
+
+## [0.0.7] - 2022-06-24
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+#### Added
+
+### Fixed
+- Fixed error code response for api key validation
+
+### Changed
+- Changed error handling for `earmark-api-key`
+    - Check if server-side api key is undefined
+    - Check if client request api key is null
+    - Check if client request api key != server-side api key && client request api key !null

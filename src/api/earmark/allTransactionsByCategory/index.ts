@@ -196,9 +196,9 @@ router.get('/', async (req:any, res:any, next:any) => {
     // ERROR HANDLING, CHECKS FOR MISSING PARAMS
     const requiredParams = ['user_id', 'startDate', 'endDate'];
     const params = {
-    user_id: user_id,
-    startDate: startDate,
-    endDate: endDate
+      user_id: user_id,
+      startDate: startDate,
+      endDate: endDate
     };
     const nextApiUrl = '/api/plaid/transactions/get';
     if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
@@ -327,6 +327,7 @@ router.get('/', async (req:any, res:any, next:any) => {
             method: "GET",
         },
       };
+      console.log(finalResponse);
       finalStatus = 200;
       } catch (error) {
         finalResponse = {

@@ -361,7 +361,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                 };
                 const merchantsResponse = await client.transactionsGet(merchantsRequest);
                 const merchantsTransactions = merchantsResponse.data.transactions;
-                console.log('top merchants running')
                 finalResponse = {
                     topMerchants: await topMerchantsFunction(merchantsTransactions),
                     statusCode: 200,
