@@ -96,7 +96,7 @@ Commit ID: [main da7a075](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.7] - 2022-06-24
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main 3aae147](https://github.com/bracesproul/earmark-backend/commit/3aae147)
 
 #### Added
 
@@ -108,3 +108,21 @@ Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
     - Check if server-side api key is undefined
     - Check if client request api key is null
     - Check if client request api key != server-side api key && client request api key !null
+
+
+## [0.0.8] - 2022-06-26
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+*will add ability to do 1/month, bi-weekly, bi-yearly, custom
+**will switch to send over data without checking value (can be any value as long as it's recurring) or custom price range
+
+#### Added
+- Added `api/earmark/recurring` route (in `/src/api/earmark/recurring`)
+    - Makes call to get all transactions
+    - Checks them for transactions which appear, once a month*, within two days from starting charge date, within 10% value**
+
+### Fixed
+
+### Changed

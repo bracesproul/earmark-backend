@@ -174,8 +174,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                 console.log(accountMetadata);
                 
                 finalResponse = {
-                    // accounts: accounts,
-                    // transactionMetadata: accountMetadata,
+                    accounts: accounts,
+                    transactionMetadata: accountMetadata,
                     categoryList: categoryList,
                     statusCode: 200,
                     statusMessage: "Success",
