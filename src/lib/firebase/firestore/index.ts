@@ -300,7 +300,6 @@ const updateUserSecurity = async (user_id: string, params: any) => {
             full_name: `${firstName} ${lastName}`,
           }
         const res = await userRef.set(data, { merge: true });
-        console.log('phone', typeof phone);
         getAuth()
         .updateUser(user_id, {
             email: email,
@@ -313,7 +312,7 @@ const updateUserSecurity = async (user_id: string, params: any) => {
             console.log('Successfully updated user', userRecord.toJSON());
         })
         .catch((error:any) => {
-            console.log('Error updating user:', error);
+            console.error('Error updating user:', error);
         });
         Promise.resolve(res);
         return 'success';
@@ -348,7 +347,6 @@ const updateUserAddress = async (user_id: string, params: any) => {
 
 const updateUserPersonal = async (user_id: string, params: any) => {
     const parsedObject = JSON.parse(params);
-    console.log(parsedObject);
     const { date_of_birth, username } = parsedObject;
     try {
         const userRef = adminDb.collection('users').doc(user_id);
@@ -368,7 +366,6 @@ const updateUserPersonal = async (user_id: string, params: any) => {
 
 const deleteAccount = async (user_id: string, params: any) => {
     const parsedObject = JSON.parse(params);
-    console.log(parsedObject);
     try {
         const res = await adminDb.collection('users').doc(user_id).delete();
         getAuth()
@@ -377,7 +374,7 @@ const deleteAccount = async (user_id: string, params: any) => {
             console.log('Successfully deleted user');
         })
         .catch((error: any) => {
-            console.log('Error deleting user:', error);
+            console.error('Error deleting user:', error);
         });
         Promise.resolve(res);
         return 'user deleted';
@@ -390,7 +387,6 @@ const deleteAccount = async (user_id: string, params: any) => {
 
 const deleteAllInstitutions = async (user_id: string, params: any) => {
     const parsedObject = JSON.parse(params);
-    console.log(parsedObject);
     try {
         const institutionsRef = adminDb.collection('users').doc(user_id).collection('access_tokens');
         const res = await institutionsRef.get().toPromise().then((querySnapshot: any) => {
@@ -409,13 +405,12 @@ const deleteAllInstitutions = async (user_id: string, params: any) => {
 
 const getDynamicTransactions = async (user_id: string, page_id: string) => {
         try {
-            console.log('see')
             let accountInfo: any = new Array();
             let accessTokens: string = '';
             const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("institution_id", '==', page_id);
             const snapshot = await accessTokensRef.get();
             if (snapshot.empty) {
-                console.log('No matching documents.');
+                console.error('No matching documents.');
             return;
             }
             snapshot.forEach((doc:any) => {
@@ -437,11 +432,8 @@ const getDynamicTransactions = async (user_id: string, page_id: string) => {
 
 const testFunc = async (user_id: string, params: any) => {
     const object = JSON.parse(params);
-    console.log('object', object);
     const { param1, param2 } = object;
-    console.log('params1', param1);
-    console.log('params2', param2);
-    return 'YELLO';
+    return {user_id: user_id, param1: param1, param2: param2};
 };
 
 // institution

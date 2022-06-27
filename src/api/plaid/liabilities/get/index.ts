@@ -101,7 +101,7 @@ router.get('/', async (req:any, res:any, next:any) => {
       }
     };
     finalStatus = 400;
-    console.log('INSIDE CATCH');
+    console.error('INSIDE CATCH');
   }
   await res.status(finalStatus);
   await res.send(finalResponse);

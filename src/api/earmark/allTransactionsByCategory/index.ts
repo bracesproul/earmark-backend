@@ -327,7 +327,7 @@ router.get('/', async (req:any, res:any, next:any) => {
             method: "GET",
         },
       };
-      console.log(finalResponse);
+
       finalStatus = 200;
       } catch (error) {
         finalResponse = {
@@ -349,7 +349,7 @@ router.get('/', async (req:any, res:any, next:any) => {
               method_used: req.method,
           }
       };
-      console.log('INSIDE CATCH');
+      console.error('INSIDE CATCH');
       finalStatus = 400;
       };
   };

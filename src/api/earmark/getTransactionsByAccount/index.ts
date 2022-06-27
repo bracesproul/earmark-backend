@@ -37,7 +37,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     let accountMetadata = new Array;
     const accessToken = await updateFirestore.getAccessTokensTransactions(user_id);
 
-    console.log('inside getTransactionsByAccount');
     let finalResponse;
     let finalStatus = 400;
         try {
@@ -88,8 +87,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                     }
                 });
             });
-
-            console.log(accountMetadata);
 
             finalResponse = {
                 accounts: accounts,

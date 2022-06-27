@@ -69,7 +69,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     };
     // END ERROR HANDLING CODE
     
-    console.log('inside item get');
     let finalResponse;
     let finalStatus;
     let requestId = new String();
@@ -83,7 +82,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     };
     try {
         const response = await client.itemGet(request);
-        console.log("RUNNING ITEM/GET");
         available_products = response.data.item.available_products;
         available_products.push("transactions");
         institution_id = response.data.item.institution_id;

@@ -106,7 +106,6 @@ router.post('/', async (req: any, res: any, next: any) => {
       account_types.push(account.subtype);
       account_ids.push(account.account_id);
     });
-    console.log('authResponse', authResponse.data);
     available_products = itemGetResponse.data.item.available_products;
     itemGetResponse.data.item.billed_products.forEach((product:any) => {
       available_products.push(product);
@@ -148,7 +147,7 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
     };
     finalStatus = 400;
-    console.log('INSIDE CATCH ptoken exchange');
+    console.error('INSIDE CATCH ptoken exchange');
     console.error(error);
   }
 

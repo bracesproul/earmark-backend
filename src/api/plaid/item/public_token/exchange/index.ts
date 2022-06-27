@@ -72,7 +72,6 @@ router.post('/', async (req: any, res: any, next: any) => {
   };
 
   try {
-    console.log('exchange token called');
     const response = await client.itemPublicTokenExchange(request);
     const accessToken = response.data.access_token;
     /* @ts-ignore */
@@ -84,7 +83,6 @@ router.post('/', async (req: any, res: any, next: any) => {
     available_products.push("transactions");
     institution_id = itemGetResponse.data.item.institution_id;
 
-    console.log(response.data);
     const itemId = response.data.item_id;
     
     await updateFirestore(userId, accessToken, itemId, institution_id, available_products)
@@ -122,7 +120,7 @@ router.post('/', async (req: any, res: any, next: any) => {
       }
     };
     finalStatus = 400;
-    console.log('INSIDE CATCH');
+    console.error('INSIDE CATCH');
   }
 
   await res.status(finalStatus);

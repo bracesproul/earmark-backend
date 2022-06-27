@@ -80,7 +80,6 @@ router.get('/', async (req: any, res: any) => {
                     }
                 });
                 await accounts.forEach((account: any) => {
-                    console.log('ACC SUBTYPE: ', account.subtype);
                     let accType = account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1);
                     if (account.account_id === accountId) {
                         finalHere.push({
@@ -100,15 +99,6 @@ router.get('/', async (req: any, res: any) => {
             finalHere.forEach((finalAccount:any) => {
                 allAccounts.push(finalAccount);
             })
-            console.log('all accs: ', allAccounts);
-
-            // for dash
-            // acc name
-            // acc balance
-            // acc last four
-            // ins name
-
-
 
             requestId = response.data.request_id;
             finalResponse = {
@@ -143,7 +133,7 @@ router.get('/', async (req: any, res: any) => {
                     method_used: req.method,
                 }
             };
-            console.log('INSIDE CATCH');
+            console.error('INSIDE CATCH');
             finalStatus = 400;
         }
     };

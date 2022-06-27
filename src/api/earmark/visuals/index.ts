@@ -490,7 +490,7 @@ router.get('/', async (req: any, res: any, next: any) => {
             }
 
         } catch (error) {
-            console.log('inside catch')
+            console.error('inside catch')
             finalStatus = 400;
             finalResponse = error;
         };

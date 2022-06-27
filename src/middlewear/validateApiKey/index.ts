@@ -12,7 +12,7 @@ const validateApiKey = (req:any, res:any, next:any) => {
             provided_api_key: reqApiKey,
         });
         res.end();
-        console.log('server-side error, earmark-api-key not found. provided key from client: ', reqApiKey);
+        console.error('server-side error, earmark-api-key not found. provided key from client: ', reqApiKey);
         return false;
     } else if (!reqApiKey) {
         res.status(401);
@@ -22,7 +22,7 @@ const validateApiKey = (req:any, res:any, next:any) => {
             provided_api_key: undefined,
         });
         res.end();
-        console.log('missing api key')
+        console.error('missing api key')
         return false;
     } else if (reqApiKey !== EARMARK_API_KEY && reqApiKey) {
         res.status(401);
@@ -32,7 +32,7 @@ const validateApiKey = (req:any, res:any, next:any) => {
             provided_api_key: reqApiKey,
         });
         res.end();
-        console.log('invalid api key. provided key from client: ', reqApiKey);
+        console.error('invalid api key. provided key from client: ', reqApiKey);
         return false;
     }
     next();

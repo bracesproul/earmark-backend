@@ -15,8 +15,6 @@ router.post('/', async (req: any, res: any, next: any) => {
     const params = req.query.params;
     const func = req.query.func;
 
-    console.log('query', req.query);
-
     let finalResponse;
     let finalStatus = 400;
         try {

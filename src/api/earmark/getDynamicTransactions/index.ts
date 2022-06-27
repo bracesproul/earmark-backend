@@ -63,16 +63,7 @@ router.get('/', async (req: any, res: any, next: any) => {
     let finalResponse;
     let finalStatus = 400;
     try {
-        console.log('inside getdynamictransactions');
 
-        /*
-        const columns = [
-  { field: 'col1', headerName: 'Name', width: 150 },
-  { field: 'col2', headerName: 'Date', width: 150 },
-  { field: 'col3', headerName: 'Amount', width: 150 },
-  { field: 'col4', headerName: 'Category', width: 150 },
-];
-        */
         let accounts: any = new Array();
 
         const firebaseResponse = await updateFirestore.getDynamicTransactions(user_id, page_id);
@@ -96,8 +87,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                 include_personal_finance_category: true,
             },
         };
-
-        console.log(accounts);
 
         const { data } = await client.transactionsGet(request);
         data.transactions.forEach((transaction: any) => {

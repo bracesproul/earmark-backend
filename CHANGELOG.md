@@ -113,7 +113,7 @@ Commit ID: [main 3aae147](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.8] - 2022-06-26
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main ca55a07](https://github.com/bracesproul/earmark-backend/commit/ca55a07)
 
 *will add ability to do 1/month, bi-weekly, bi-yearly, custom
 **will switch to send over data without checking value (can be any value as long as it's recurring) or custom price range
@@ -124,5 +124,21 @@ Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
     - Checks them for transactions which appear, once a month*, within two days from starting charge date, within 10% value**
 
 ### Fixed
+
+### Changed
+
+
+## [0.0.9] - 2022-06-26
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+#### Added
+- Added function in lib for formatting strings, makes all first char upper case, removes speical chars
+- Added todo file
+
+### Fixed
+- Fixed recurring code to properrly account for what is and what is not a recurring charge
+- Fixed some console.log statments to be console.error
 
 ### Changed

@@ -81,7 +81,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                     });
                 });
                 const uniqueChars = [...new Set(categoriesAvail)];
-                console.log(uniqueChars);
+
                 finalResponse = {
                     dataGridTransactions: dataGridTransactions,
                     transactionMetadata: transactionMetadata,
@@ -170,9 +170,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         }
                     });
                 });
-    
-                console.log(accountMetadata);
-                
+                    
                 finalResponse = {
                     accounts: accounts,
                     transactionMetadata: accountMetadata,

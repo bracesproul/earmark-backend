@@ -1,25 +1,17 @@
 /* eslint-disable */
-
-// TODO: WORKS UNLESS FIRST YEAR HAS MISSING MONTHS, testArr setup should fail, but it passes
-// first year doesn't end with 12, passes
-// first year ends with 12, contains two months and one is 7 other is 12, passes
-// first year doesn't end with 12, contains one month and passes
-// FIRST YEAR CHECKING BROKEN
-
-
-
 import axios from 'axios';
 import dotenv from 'dotenv';
-import moment from 'moment';
+const moment = require('moment');
+const parseNumbers = require('../../../lib/parseNumbers');
+const uniqid = require('uniqid');
+const { makeStringJustLetterAndNumber } = require('../../../lib/parsing/formatString')
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const updateFirestore = require('../../../lib/firebase/firestore/');
 const express = require('express');
 const router = express.Router();
-
 const monthDates = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
 
 const testArr:any = {"Uber": {
     "merchant_name": "Uber",
@@ -168,14 +160,24 @@ const sortDatesByYear = (dateArr:string[]) => {
     return { yearsArr: yearsArr, datesObj: datesObj}
 }
 
-const sumAllMonths = (array:number[]) => array.reduce((prev:number, current:number) => prev + current)
+const getAvergeChargeAmount = (totalAmount:number, totalTransactions:number) => totalAmount / totalTransactions;
 
-const sumFirstThroughLast = (lastNum:number) => {
-    let total = 0;
-    for (let i = 0; i <= lastNum; i++) {
-        total += i;
-    }
-    return total;
+const getFirstAndLastDate = (datesArray:string[]) => {
+    let largestDate = 0;
+    let smallestDate = 0;
+    datesArray.map((date) => {
+        const numDate = parseInt(date.split('-').join(''));
+        if (largestDate == 0) largestDate = numDate;
+        if (numDate > largestDate) largestDate = numDate;
+    })
+    datesArray.map((date) => {
+        const numDate = parseInt(date.split('-').join(''));
+        if (smallestDate == 0) smallestDate = numDate;
+        if (numDate < smallestDate) smallestDate = numDate;
+    })
+    const largestDateString = `${largestDate.toString().slice(0, 4)}-${largestDate.toString().slice(4, 6)}-${largestDate.toString().slice(6, 8)}`
+    const smallestDateString = `${smallestDate.toString().slice(0, 4)}-${smallestDate.toString().slice(4, 6)}-${smallestDate.toString().slice(6, 8)}`
+    return { firstDate: smallestDateString, lastDate: largestDateString};
 };
 
 const noSkippedMonths = (datesObj:any, yearsArr:number[], i:number, merchant_name:string) => {
@@ -190,30 +192,16 @@ const multiYears = (datesObj:any, yearsArr:number[], merchant_name:string) => {
     const firstYear = Math.min(...yearsArr);
 
     for (let i = 0; i < yearsArr.length; i++) {
-        console.log('loop');
         const sortedMonths = datesObj[yearsArr[i]].sort((a:number, b:number) => a - b);
-        /*
-        let bigNumCounter;
-
-        for (let n = 0; n < datesObj[yearsArr[i]].length; n++) {
-            if (n == 0) bigNumCounter = datesObj[yearsArr[i]][n];
-            if (datesObj[yearsArr[i]][n] > bigNumCounter) bigNumCounter = datesObj[yearsArr[i]][n];
-        }
-        console.log(datesObj[yearsArr[i]], bigNumCounter);
-        */
         const lastMonth = sortedMonths[sortedMonths.length -1];
         const firstMonth = sortedMonths[0];
         if ((yearsArr[i] == firstYear) && (lastMonth != 12)) {
-            console.log(merchant_name, 'false');
             return false;
         } else if ((yearsArr[i] == firstYear) && (lastMonth == 12) && (noSkippedMonths(datesObj, yearsArr, i, merchant_name) == false)) {
-            console.log(merchant_name, 'false');
             return false;
         } else if ((yearsArr[i] != firstYear) && (firstMonth == 1) && (noSkippedMonths(datesObj, yearsArr, i, merchant_name) == false)) {
-            console.log(merchant_name, 'false');
             return false;
         } else if ((yearsArr[i] != firstYear) && (firstMonth != 1)) {
-            console.log(merchant_name, 'false');
             return false;
         }
     }
@@ -222,22 +210,10 @@ const multiYears = (datesObj:any, yearsArr:number[], merchant_name:string) => {
 
 const checkDupsDates = (dateArr:string[], singleDate:string, merchant_name:string) => {
     if (checkDuplicateMonths(dateArr, singleDate)) {
-        console.log('dup months', merchant_name);
         return true
     } else {
         const yearsArr = sortDatesByYear(dateArr).yearsArr;
         const datesObj = sortDatesByYear(dateArr).datesObj;
-        /*
-        if (yearsArr.length > 1) {
-            const sortedMonths = datesObj[yearsArr[0]].sort((a:number, b:number) => a - b);
-            const lastMonth = sortedMonths[sortedMonths.length -1];
-            if (lastMonth != 12) {
-                console.log(lastMonth);
-                console.log(sortedMonths);
-                return true;
-            }
-        }
-        */
         if (yearsArr.length > 1 && multiYears(datesObj, yearsArr, merchant_name) == false) return true;
         if (yearsArr.length == 1 && noSkippedMonths(datesObj, yearsArr, 0, merchant_name) == false) return true;
         return false;
@@ -249,7 +225,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
-    const queryType = req.query.queryType;
 
 
     // ERROR HANDLING, CHECKS FOR MISSING PARAMS
@@ -298,6 +273,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 if (!txnNames.includes(name)) txnNames.push(name);
                 txns.push({
                     account_id: transaction.account_id,
+                    category: transaction.personal_finance_category.primary,
                     transaction_id: transaction.transaction_id,
                     date: transaction.date,
                     name: transaction.name,
@@ -329,27 +305,50 @@ router.get('/', async (req: any, res: any, next: any) => {
                 if (!recTxnMap.hasOwnProperty(recTxn.merchant_name)) {
                     recTxnMap[recTxn.merchant_name] = {
                         merchant_name: recTxn.merchant_name,
-                        transactions: [recTxn]
+                        category: recTxn.category,
+                        allDates: [recTxn.date],
+                        transactions: [recTxn],
+                        transactionIds: [],
                     };
                     return;
                 };
                 recTxnMap[recTxn.merchant_name].transactions.push(recTxn);
+                recTxnMap[recTxn.merchant_name].allDates.push(recTxn.date);
             })
 
             let objMapCount = 0;
+            let final_data = new Array();
+
             Object.keys(recTxnMap).map((key:any) => {
                 objMapCount++;
 
                 let timeStamps = new Array();
                 let monthlyTimeStampArrays = new Array();
                 let normalDates:string[] = new Array();
+                let transactionIds:string[] = new Array();
+                let accountIds:string[] = new Array();
+                let merchant_name:string;
+                let totalAmountCounter:number = 0;
+                let transactionCounter:number = 0;
+                // const datesArray:string[] = recTxnMap[key].allDates;
+                const firstDate = getFirstAndLastDate(recTxnMap[key].allDates).firstDate;
+                const lastDate = getFirstAndLastDate(recTxnMap[key].allDates).lastDate;
+                let category:string;
+
                 recTxnMap[key].transactions.forEach((txn:any) => {
                     const splitDate = `${txn.date.split('-')[0]}${txn.date.split('-')[1]}`
                     normalDates.push(splitDate);
                     timeStamps.push(txn.unix_epoch_time);
                     monthlyTimeStampArrays.push(txn.unix_epoch_month_start_end);
+                    transactionIds.push(txn.transaction_id);
+                    accountIds.push(txn.account_id);
+                    merchant_name = txn.merchant_name;
+                    totalAmountCounter += txn.amount;
+                    transactionCounter += 1;
+                    category = makeStringJustLetterAndNumber(txn.category)
+                    recTxnMap[key].transactionIds.push({ txn_id: txn.transaction_id, txn_date: txn.date })
                 });
-
+                
                 recTxnMap[key].transactions.every((txn:any) => {
                     const splitDate = `${txn.date.split('-')[0]}${txn.date.split('-')[1]}`
 
@@ -360,9 +359,71 @@ router.get('/', async (req: any, res: any, next: any) => {
                 });
             })
 
+            
+            Object.keys(recTxnMap).map((key:any) => {
+                const datesArray = recTxnMap[key].allDates;
+                let totalAmountCounter = 0;
+                let transactionCounter = 0;
+                recTxnMap[key].transactions.forEach((txn:any) => {
+                    totalAmountCounter += txn.amount;
+                    transactionCounter += 1;
+                });
+                const newStruct = recTxnMap[key].transactions.map((txn:any) => {
+                    return {
+                        txn_id: txn.transaction_id,
+                        acc_id: txn.account_id,
+                        col1: txn.merchant_name,
+                        col2: parseNumbers(totalAmountCounter),
+                        col3: parseNumbers(getAvergeChargeAmount(totalAmountCounter, transactionCounter)),
+                        col4: transactionCounter,
+                        col5: getFirstAndLastDate(datesArray).firstDate,
+                        col6: getFirstAndLastDate(datesArray).lastDate,
+                        col7: makeStringJustLetterAndNumber(txn.category),
+                        date: txn.date,
+                        amount: parseNumbers(txn.amount)
+                    }
+                });
+                final_data.push(newStruct)
+            });
+            let merchant_transactions_and_overview:Array<any> = new Array();
+            let structCounter = 0;
+            final_data.forEach((data:any) => {
+                structCounter += 1;
+                for (let i = 0; i < data.length; i++) {
+                    if (i == 0) {
+                        merchant_transactions_and_overview.push({
+                            id: `${uniqid()}-${uniqid()}`,
+                            acc_id: data[i].acc_id,
+                            col1: data[i].col1,
+                            col2: `$${data[i].col2}`,
+                            col3: `$${data[i].col3}`,
+                            col4: data[i].col4,
+                            col5: data[i].col5,
+                            col6: data[i].col6,
+                            col7: data[i].col7,
+                            txn_metadata: [{
+                                col1: data[i].col1,
+                                col2: data[i].date,
+                                col3: `$${data[i].amount}`,
+                                col4: data[i].col7,
+                                id: `${uniqid()}-${uniqid()}`,
+                                acc_id: data[i].acc_id,
+                            }]
+                        });
+                    };
+                    merchant_transactions_and_overview[structCounter - 1].txn_metadata.push({
+                        col1: data[i].col1,
+                        col2: data[i].date,
+                        col3: `$${data[i].amount}`,
+                        col4: data[i].col7,
+                        id: `${uniqid()}-${uniqid()}`,
+                        acc_id: data[i].acc_id,
+                    });
+                }
+            })
 
             finalResponse = {
-                recurring_transactions: recTxnMap,
+                recurring_transactions: merchant_transactions_and_overview,
                 statusCode: 200,
                 statusMessage: "Success",
                 metaData: {
