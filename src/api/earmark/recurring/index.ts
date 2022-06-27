@@ -4,116 +4,13 @@ import dotenv from 'dotenv';
 const moment = require('moment');
 const parseNumbers = require('../../../lib/parseNumbers');
 const uniqid = require('uniqid');
-const { makeStringJustLetterAndNumber } = require('../../../lib/parsing/formatString')
+const { makeStringJustLetterAndNumber } = require('../../../lib/parsing/formatString');
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
 import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const updateFirestore = require('../../../lib/firebase/firestore/');
 const express = require('express');
 const router = express.Router();
-const monthDates = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-const testArr:any = {"Uber": {
-    "merchant_name": "Uber",
-    "transactions": [
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "nk4Dz7pnqNuxWzWe4BpEfnnjlGw6p9uKdMdwZ",
-            "date": "2022-05-18",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1652857200,
-            "unix_epoch_month_start_end": [
-                1651388400,
-                1654066799
-            ]
-        },
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "RNBM5pVD7EcL8A89NGXDCrrjd5DR7biXKoK36",
-            "date": "2022-04-18",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1650265200,
-            "unix_epoch_month_start_end": [
-                1648796400,
-                1651388399
-            ]
-        },
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "raqDdMRnBeu1ydyBjqg5cvveEbZzglCaxkx61",
-            "date": "2022-03-17",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1645084800,
-            "unix_epoch_month_start_end": [
-                1643702400,
-                1646121599
-            ]
-        },
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "raqDdMRnBeu1ydyBjqg5cvveEbZzglCaxkx61",
-            "date": "2022-02-17",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1645084800,
-            "unix_epoch_month_start_end": [
-                1643702400,
-                1646121599
-            ]
-        },
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "aWkX5qdbnwSelzlwWaGki995BomDWvH1qKqQB",
-            "date": "2022-01-18",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1642492800,
-            "unix_epoch_month_start_end": [
-                1641024000,
-                1643702399
-            ]
-        },
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "aWkX5qdbnwSelzlwWaGki995BomDWvH1qKqQB",
-            "date": "2021-12-18",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1642492800,
-            "unix_epoch_month_start_end": [
-                1641024000,
-                1643702399
-            ]
-        },
-        {
-            "account_id": "kKwDqNbWVdcRGqG3xba4hZZ31ebaqbizWX9lQ",
-            "transaction_id": "aWkX5qdbnwSelzlwWaGki995BomDWvH1qKqQB",
-            "date": "2021-08-18",
-            "name": "Uber 072515 SF**POOL**",
-            "amount": 6.33,
-            "merchant_name": "Uber",
-            "unix_epoch_time": 1642492800,
-            "unix_epoch_month_start_end": [
-                1641024000,
-                1643702399
-            ]
-        },
-    ]
-}};
-
-
-
-
-
 
 const API_URL = globalVars().API_URL;
 

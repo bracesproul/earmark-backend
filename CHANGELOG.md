@@ -131,7 +131,7 @@ Commit ID: [main ca55a07](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.9] - 2022-06-26
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main fdea10e](https://github.com/bracesproul/earmark-backend/commit/fdea10e)
 
 #### Added
 - Added function in lib for formatting strings, makes all first char upper case, removes speical chars
@@ -142,3 +142,19 @@ Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
 - Fixed some console.log statments to be console.error
 
 ### Changed
+
+
+## [0.0.10] - 2022-06-27
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+#### Added
+- Added `application_start.sh`, `application_stop.sh` and `before_install.sh` shell scripts for ci/cd with aws
+- Added `appspec.yml` config file for aws
+
+### Fixed
+
+### Changed
+- Added options with `include_optional_metadata` to `/api/plaid/institution/get` and `/api/plaid/institution/get_by_id`
+- Moved `ts-node` and `typescript` from devDependencies to dependencies 

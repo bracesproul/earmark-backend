@@ -52,6 +52,9 @@ router.get('/', async (req:any, res:any, next:any) => {
     const request: InstitutionsGetByIdRequest = {
         institution_id: institutionID,
         country_codes: ['US'],
+        options: {
+          include_optional_metadata: true
+        }
     };
     try {
         const response = await client.institutionsGetById(request);

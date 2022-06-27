@@ -24,12 +24,12 @@
     "moment": "^2.29.3",
     "morgan": "^1.10.0",
     "plaid": "^10.3.0",
-    "uniqid": "^5.4.0"
+    "uniqid": "^5.4.0",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.4"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",
-    "nodemon": "^2.0.16",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "nodemon": "^2.0.16"
   }
 }

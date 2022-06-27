@@ -57,6 +57,9 @@ router.get('/', async (req:any, res:any, next:any) => {
         count: count,
         offset: offset,
         country_codes: ['US'],
+        options: {
+          include_optional_metadata: true
+        }
     };
     try {
         const response = await client.institutionsGet(request);
