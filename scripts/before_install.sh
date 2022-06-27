@@ -7,9 +7,6 @@ nvm install node
 
 #create our working directory if it doesnt exist
 DIR="/home/ec2-user/earmark-backend"
-if [ -d "$DIR" ]; then
-  echo "${DIR} exists"
-else
-  echo "Creating ${DIR} directory"
-  mkdir ${DIR}
-fi
+rm -rf "$DIR"
+echo "Creating ${DIR} directory"
+mkdir ${DIR}
