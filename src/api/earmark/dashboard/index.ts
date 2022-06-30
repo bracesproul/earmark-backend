@@ -91,7 +91,8 @@ const spendingOverviewFunction = async (transactionsResponse: any) => {
             date: transaction.date,
             amount: amount,
             category: makeFirstLetterUpperCase(transaction.personal_finance_category.primary),
-            id: transaction.transaction_id
+            id: transaction.transaction_id,
+            account_id: transaction.account_id
         })
     });
     return finalSpendingOverview;

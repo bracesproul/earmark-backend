@@ -147,7 +147,7 @@ Commit ID: [main fdea10e](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.10] - 2022-06-27
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main d799b1e](https://github.com/bracesproul/earmark-backend/commit/d799b1e)
 
 #### Added
 - Added `application_start.sh`, `application_stop.sh` and `before_install.sh` shell scripts for ci/cd with aws
@@ -158,3 +158,18 @@ Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
 ### Changed
 - Added options with `include_optional_metadata` to `/api/plaid/institution/get` and `/api/plaid/institution/get_by_id`
 - Moved `ts-node` and `typescript` from devDependencies to dependencies 
+
+
+## [0.0.11] - 2022-06-29
+
+### Notes
+Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+
+#### Added
+
+### Fixed
+
+### Changed
+- dashboard spending overview response now contains `account_id`
+
+### Removed
