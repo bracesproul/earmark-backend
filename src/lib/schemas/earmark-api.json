@@ -1,0 +1,93 @@
+{
+  "route-urls": {
+    "allAccountInfo": {
+      "url": "/api/earmark/allAccountInfo",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "allTransactions": {
+      "url": "/api/earmark/allTransactions",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "balance": {
+      "url": "/api/earmark/balance",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "tokenExchange": {
+      "url": "/api/earmark/public_token/exchange",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "getTransactionsByAccount": {
+      "url": "/api/earmark/getTransactionsByAccount",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "allTransactionsByCategory": {
+      "url": "/api/earmark/allTransactionsByCategory",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "recurring": {
+      "url": "/api/earmark/recurring",
+      "params": {
+        "user_id": "A9kohZbP3WRB1qdr3CqEd9GOLi33",
+        "startDate": "2020-01-01",
+        "endDate": "2022-01-01"
+      },
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "dashboard": {
+      "url": "/api/earmark/dashboard",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "visuals": {
+      "url": "/api/earmark/visuals",
+      "params": {
+        "user_id": "A9kohZbP3WRB1qdr3CqEd9GOLi33",
+        "startDate": "2020-01-01",
+        "endDate": "2022-01-01",
+        "queryType": "lineChart"
+      },
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    },
+    "getDynamicTransactions": {
+      "url": "/api/earmark/getDynamicTransactions",
+      "params": {},
+      "required_headers": {
+        "earmark-api-key": "30icv-rf5Ta-uEyg3-WwY85"
+      },
+      "response_schema": []
+    }
+  }
+}

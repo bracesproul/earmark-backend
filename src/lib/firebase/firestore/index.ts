@@ -1,3 +1,4 @@
+/*
 const admin = require('firebase-admin');
 const { getAuth } = require('firebase-admin/auth');
 
@@ -460,6 +461,7 @@ interface IFirestore {
     getDynamicTransactions: (user_id: string, page_id: string) => Promise<void>;
 }
 
+export {};
 module.exports = {
     updateUser, 
     getAccessTokens,
@@ -481,4 +483,4 @@ module.exports = {
     deleteAccount,
     deleteAllInstitutions,
     getDynamicTransactions,
-};
+};*/

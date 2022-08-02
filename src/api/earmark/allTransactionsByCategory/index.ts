@@ -1,8 +1,8 @@
 /* eslint-disable */
 import dotenv from 'dotenv';
 dotenv.config();
-import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
-const updateFirestore = require('../../../lib/firebase/firestore');
+const { getAccessTokensTransactions } = require('../../../lib/firebase/firestore');
+const { getAccessTokens } = require('../../../services/db');
 const express = require('express');
 const router = express.Router();
 
@@ -192,29 +192,12 @@ router.get('/', async (req:any, res:any, next:any) => {
     const user_id = req.query.user_id;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate
-
-    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-    const requiredParams = ['user_id', 'startDate', 'endDate'];
-    const params = {
-      user_id: user_id,
-      startDate: startDate,
-      endDate: endDate
-    };
-    const nextApiUrl = '/api/plaid/transactions/get';
-    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-        res.status(400);
-        res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-        return;
-    };
-    // END ERROR HANDLING CODE
-  
     let transactionsGet;
     let requestId = new String();
     let totalTxns = new Number();
     let finalResponse;
     let finalStatus;
-    const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
+    const accessTokens = await getAccessTokens(user_id);
 
   for (let i = 0; i < accessTokens.length; i++) {
     /* @ts-ignore */

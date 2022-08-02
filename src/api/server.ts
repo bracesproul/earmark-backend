@@ -5,6 +5,8 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const validateApiKey = require('../middlewear/validateApiKey');
+const db = require('../services/db');
+
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -78,7 +80,8 @@ const masterEarmarkApiRouteList = [
 const test = require('./plaid/test');
 const link_token_create = require('./plaid/link/token/create');
 const exchange_public_token = require('./plaid/item/public_token/exchange');
-const transactions_get = require('./plaid/transactions/get');
+const transactions_get = require('./plaid/transactions/get/index');
+const transactions_get_plain = require('./plaid/transactions/get/index-plain');
 const categories_get = require('./plaid/transactions/categories');
 const accounts_get = require('./plaid/accounts/get');
 const auth_get = require('./plaid/auth/get');
@@ -95,6 +98,7 @@ app.use('/', test);
 app.use('/api/plaid/link/token/create', validateApiKey, link_token_create);
 app.use('/api/plaid/item/public_token/exchange', validateApiKey, exchange_public_token);
 app.use('/api/plaid/transactions/get', validateApiKey, transactions_get);
+app.use('/api/plaid/transactions/get-plain', validateApiKey, transactions_get_plain);
 app.use('/api/plaid/transactions/categories', validateApiKey, categories_get);
 app.use('/api/plaid/accounts/get', validateApiKey, accounts_get);
 app.use('/api/plaid/auth/get', validateApiKey, auth_get);
@@ -130,7 +134,7 @@ app.use('/api/earmark/public_token/exchange', validateApiKey, earmarkPublic_toke
 app.use('/api/earmark/getTransactionsByAccount', validateApiKey, getTransactionsByAccount);
 app.use('/api/earmark/allTransactionsByCategory', validateApiKey, allTransactionsByCategory);
 app.use('/api/earmark/recurring', validateApiKey, recurring);
-app.use('/api/earmark/dashboard', validateApiKey, earmark_dashboard);
+app.use('/api/earmark/dashboard', /*validateApiKey,*/ earmark_dashboard);
 app.use('/api/earmark/visuals', validateApiKey, earmark_visuals);
 app.use('/api/earmark/getDynamicTransactions', validateApiKey, earmark_getDynamicTransactions);
 // firebase routes

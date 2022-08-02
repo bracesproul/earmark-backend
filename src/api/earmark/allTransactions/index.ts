@@ -1,37 +1,116 @@
 /* eslint-disable */
-import axios from 'axios';
+export {};
 import dotenv from 'dotenv';
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
-import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
 const updateFirestore = require('../../../lib/firebase/firestore/');
+const { getAccessTokens } = require('../../../services/db');
 const express = require('express');
 const router = express.Router();
+import moment from 'moment';
+
+const {
+    Configuration,
+    PlaidApi,
+    PlaidEnvironments,
+    AccountsGetRequest
+} = require("plaid");
+
+const configuration = new Configuration({
+    basePath: PlaidEnvironments[process.env.PLAID_ENV],
+    baseOptions: {
+        headers: {
+            'PLAID-CLIENT-ID': process.env.CLIENT_ID,
+            'PLAID-SECRET': process.env.SECRET,
+            'Plaid-Version': '2020-09-14',
+        },
+    },
+});
+const client = new PlaidApi(configuration);
 
 const API_URL = globalVars().API_URL;
+
+/*
+            "id": "vd3rMJGPDNTwnNeBERX3CLNL76a19WCXgmmaW",
+            "col1": "SparkFun",
+            "col2": "2021-12-31",
+            "col3": 89.4,
+            "col4": "Food and Drink"
+*/
+
+const formatCategoryName = (categoryName:string) => {
+    let string  = categoryName.split('_').join(' ')
+    string = string.toLowerCase()
+    return string.charAt(0).toLowerCase().toUpperCase() + string.slice(1);
+}
+
+const getCategories = (accounts:any, transactionList:any) => {
+    let categoryList:any = [];
+    accounts.forEach((account:any) => {
+        categoryList.push({
+            account_id: account.account_id,
+            categories: []
+        })
+    })
+    transactionList.forEach((transaction:any) => {
+        transaction.transactions.forEach((txn:any) => {
+            categoryList.forEach((category:any) => {
+                if (category.account_id === transaction.account_id) {
+                    category.categories.push(txn.category)
+                }
+            })
+        })
+    })
+    return categoryList.map((category:any) => {
+        return {
+            account_id: category.account_id,
+            categories: [...new Set(category.categories)]
+        }
+    })
+}
+
+
+const getTransactions = async (transactions:any, accounts:any) => {
+    let transactionList:any = [];
+    let categories:any = [];
+    accounts.forEach((account:any) => {
+        transactionList.push({
+            account_id: account.account_id,
+            account_name: account.name,
+            account_official_name: account.official_name,
+            subtype: account.subtype,
+            transactions: []
+        })
+        categories.push({
+            account_id: account.account_id,
+            categories: []
+        })
+        transactions.forEach((transaction:any) => {
+            if (transaction.account_id === account.account_id) {
+                transactionList.forEach((txn:any) => {
+                    if (txn.account_id === transaction.account_id) {
+                        txn.transactions.push({
+                            id: transaction.transaction_id,
+                            name: transaction.name,
+                            date: moment(transaction.date).format('MM/DD/YYYY'),
+                            amount: transaction.amount,
+                            category: formatCategoryName(transaction.personal_finance_category.primary)
+                        })
+                    }
+                })
+            }
+        });
+    });
+
+    console.log(getCategories(accounts, transactionList));
+}
 
 router.get('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     const queryType = req.query.queryType;
-
-
-    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-    const requiredParams = ['user_id', 'startDate', 'endDate'];
-    const params = {
-        user_id: user_id,
-        startDate: startDate,
-        endDate: endDate,
-    };
-    const nextApiUrl = '/api/earmark/allTransactions';
-    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-        await res.status(400);
-        await res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-        return;
-    };
-    // END ERROR HANDLING CODE
+    const test = req.query.test;
     let finalResponse;
     let finalStatus = 400;
 
@@ -40,27 +119,25 @@ router.get('/', async (req: any, res: any, next: any) => {
         let dataGridTransactions = new Array;
         let transactionMetadata = new Array;
         let categoriesAvail = new Array;
-        const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
+        const accessTokens = await getAccessTokens(user_id);
         for (let i = 0; i < accessTokens.length; i++) {
             try {
-                const config = {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'earmark-api-key': process.env.EARMARK_API_KEY,
+                // @ts-ignore
+                const request: TransactionsGetRequest = {
+                    access_token: accessTokens[i],
+                    start_date: startDate,
+                    end_date: endDate,
+                    options: {
+                        include_personal_finance_category: true,
                     },
-                    url: API_URL + "/api/plaid/transactions/get",
-                    params: {
-                        user_id: user_id,
-                        access_token: accessTokens[i],
-                        startDate: startDate,
-                        endDate: endDate,
-                    },
-                    method: "GET"
-                }
-                const response = await axios(config);
-                full_response = response.data;
-    
-                response.data.transactions.transactions.forEach((transaction:any) => {
+                };
+                const { data } = await client.transactionsGet(request);
+
+                await getTransactions(data.transactions, data.accounts);
+
+                full_response = data;
+
+                data.transactions.forEach((transaction:any) => {
                     categoriesAvail.push(transaction.personal_finance_category.primary);
                     dataGridTransactions.push({
                         id: transaction.transaction_id, 
@@ -98,14 +175,13 @@ router.get('/', async (req: any, res: any, next: any) => {
                 };
                 finalStatus = 200;
             } catch (error) {
+                console.error(error);
                 finalStatus = 400;
                 finalResponse = error;
             };
         };
     } else if (queryType === 'lineChart') {
         let full_response;
-        let dataGridTransactions = new Array;
-        let transactionMetadata = new Array;
         let categoryList = new Array;
         let accountMetadata = new Array;
         let accounts = new Array;
@@ -113,28 +189,23 @@ router.get('/', async (req: any, res: any, next: any) => {
     
         for (let i = 0; i < accessTokens.length; i++) {
             try {
-                const config = {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'earmark-api-key': process.env.EARMARK_API_KEY,
+                // @ts-ignore
+                const request: TransactionsGetRequest = {
+                    access_token: accessTokens[i],
+                    start_date: startDate,
+                    end_date: endDate,
+                    options: {
+                        include_personal_finance_category: true,
                     },
-                    url: API_URL + "/api/plaid/transactions/get",
-                    params: {
-                        user_id: user_id,
-                        access_token: accessTokens[i],
-                        startDate: startDate,
-                        endDate: endDate,
-                    },
-                    method: "GET"
-                }
-                const response = await axios(config);
-                full_response = response.data;
+                };
+                const { data } = await client.transactionsGet(request);
+                full_response = data;
                 
-                await full_response.transactions.accounts.forEach((account:any) => {
+                full_response.accounts.forEach((account:any) => {
                     accounts.push({[account.account_id]: []});
                     categoryList.push({[account.account_id]: []});
                 });
-                await full_response.transactions.transactions.forEach((transaction:any) => {
+                full_response.transactions.forEach((transaction:any) => {
                     const cat1 = transaction.category[0].split(' ').join('_').toLowerCase();
                     const cat2 = transaction.category[1].split(' ').join('_').toLowerCase();
                     const both = cat1 + '-' + cat2;
@@ -146,7 +217,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 });
     
                 accounts.map(async (account:any) => {
-                    await response.data.transactions.transactions.map((transaction:any) => {
+                    data.transactions.map((transaction:any) => {
                         if (transaction.account_id in account) {
                             account[transaction.account_id].push({
                                 id: transaction.transaction_id, 
@@ -159,7 +230,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                     });
                 });
     
-                await response.data.transactions.accounts.forEach((account:any) => {
+                data.accounts.forEach((account:any) => {
                     accountMetadata.push({
                         account: {
                             account_id: account.account_id,
@@ -187,6 +258,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 };
                 finalStatus = 200;
             } catch (error) {
+                console.error(error);
                 finalStatus = 400;
                 finalResponse = error;
             };

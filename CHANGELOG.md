@@ -163,7 +163,8 @@ Commit ID: [main d799b1e](https://github.com/bracesproul/earmark-backend/commit/
 ## [0.0.11] - 2022-06-29
 
 ### Notes
-Commit ID: [main ](https://github.com/bracesproul/earmark-backend/commit/)
+Commit ID: [main bdf8ad3](https://github.com/bracesproul/earmark-backend/commit/bdf8ad3)
+buncha changes, idk too much to go over
 
 #### Added
 

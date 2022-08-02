@@ -11,18 +11,19 @@
 /* eslint-disable */
 import axios from 'axios';
 import dotenv from 'dotenv';
+import {TransactionsGetResponse} from "plaid";
 dotenv.config();
 const globalvars = require('../../../lib/globalVars');
-import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
-const updateFirestore = require('../../../lib/firebase/firestore/');
+const { getAccessTokens } = require('../../../services/db');
 const express = require('express');
 const moment = require('moment');
 const router = express.Router();
 const { 
     Configuration, 
     PlaidApi, 
-    PlaidEnvironments, 
-    AccountsGetRequest 
+    PlaidEnvironments,
+    TransactionsGetRequest,
+    TransactionsGetResponse
 } = require("plaid");
 
 interface IGetLineChartData {
@@ -58,6 +59,11 @@ const makeFirstLetterUpperCase = (string: string) => {
     .map((s) => s.charAt(0).toUpperCase() + s.substring(1))
     .join(' ');
     return string;
+}
+
+const makeUpperCase = (string: string) => {
+    string = string.split(' ').join('_');
+    return string.toUpperCase();
 }
 
 const roundUnevenNumbers = (number: number) => {
@@ -102,35 +108,40 @@ const getMonthDatesInArray = (year: string, month: string) => {
             datesArray.push(newDate)
         }
         return datesArray;
-    } else if (month === '2') {
+    }
+    else if (month === '2') {
         for (let i = 0; i < 28; i++) {
             let startDate = moment(`${year}-02-01`, 'YYYY-MM-DD').format("YYYY-MM-DD");
             const newDate = moment(startDate, 'YYYY-MM-DD').add(i, "days").format("YYYY-MM-DD");
             datesArray.push(newDate)
         }
         return datesArray;
-    } else if (month == '1' || month == '3' || month == '5' || month == '7' || month == '8') {
+    }
+    else if (month == '1' || month == '3' || month == '5' || month == '7' || month == '8') {
         for (let i = 0; i < 31; i++) {
             let startDate = moment(`${year}-0${month}-01`, 'YYYY-MM-DD').format("YYYY-MM-DD");
             const newDate = moment(startDate, 'YYYY-MM-DD').add(i, "days").format("YYYY-MM-DD");
             datesArray.push(newDate)
         }
         return datesArray;
-    } else if (month == '10' || month == '12') {
+    }
+    else if (month == '10' || month == '12') {
         for (let i = 0; i < 31; i++) {
             let startDate = moment(`${year}-${month}-01`, 'YYYY-MM-DD').format("YYYY-MM-DD");
             const newDate = moment(startDate, 'YYYY-MM-DD').add(i, "days").format("YYYY-MM-DD");
             datesArray.push(newDate)
         }
         return datesArray;
-    } else if (month == '4' || month == '6' || month == '9') {
+    }
+    else if (month == '4' || month == '6' || month == '9') {
         for (let i = 0; i < 30; i++) {
             let startDate = moment(`${year}-0${month}-01`, 'YYYY-MM-DD').format("YYYY-MM-DD");
             const newDate = moment(startDate, 'YYYY-MM-DD').add(i, "days").format("YYYY-MM-DD");
             datesArray.push(newDate)
         }
         return datesArray;
-    } else if (month == '11') {
+    }
+    else if (month == '11') {
         for (let i = 0; i < 30; i++) {
             let startDate = moment(`${year}-${month}-01`, 'YYYY-MM-DD').format("YYYY-MM-DD");
             const newDate = moment(startDate, 'YYYY-MM-DD').add(i, "days").format("YYYY-MM-DD");
@@ -140,189 +151,195 @@ const getMonthDatesInArray = (year: string, month: string) => {
     }
 }
 
-const getCategoryColor = (category: string) => {
-    const colors: any = {
-        'Income': '#00FFFF',
-        'Transfer In': '#000000',
-        'Transfer Out': '#0000FF',
-        'Loan Payments': '#FF00FF',
-        'Bank Fees': '#808080',
-        'Entertainment': '#008000',
-        'Food And Drink': '#00FF00',
-        'General Merchandise': '#800000',
-        'Home Improvement': '#000080',
-        'Medical': '#808000',
-        'Personal Care': '#800080',
-        'General Services': '#FF0000',
-        'Government And Non-Profit': '#C0C0C0',
-        'Transportation': '#008080',
-        'Travel': '#FFFF00',
-        'Rent And Utilities': '#AAFFC3',
-    }
-    return colors[category];
+// Line chart function
+type MonthsAndYears = 'January 2020' | 'January 2021' | 'January 2022' | 'February 2020' | 'February 2021' | 'February 2022' | 'March 2020' | 'March 2021' | 'March 2022' | 'April 2020' | 'April 2021' | 'April 2022' | 'May 2020' | 'May 2021' | 'May 2022' | 'June 2020' | 'June 2021' | 'June 2022' | 'July 2020' | 'July 2021' | 'July 2022' | 'August 2020' | 'August 2021' | 'August 2022' | 'September 2020' | 'September 2021' | 'September 2022' | 'October 2020' | 'October 2021' | 'October 2022' | 'November 2020' | 'November 2021' | 'November 2022' | 'December 2020' | 'December 2021' | 'December 2022'
+type Months = 'January' | 'February' | 'March' | 'April' | 'May' | 'June' | 'July' | 'August' | 'September' | 'October' | 'November' | 'December'
+
+interface IChartTransactionResponse {
+    time_period: MonthsAndYears;
+    "name": MonthsAndYears;
+    "month": Months;
+    "Income": number | null;
+    "Transfer In": number | null;
+    "Transfer Out": number | null;
+    "Loan Payments": number | null;
+    "Bank Fees": number | null;
+    "Entertainment": number | null;
+    "Food And Drink": number | null;
+    "General Merchandise": number | null;
+    "Home Improvement": number | null;
+    "Medical": number | null;
+    "Personal Care": number | null;
+    "General Services": number | null;
+    "Government And Non-Profit": number | null;
+    "Transportation": number | null;
+    "Travel": number | null;
+    "Rent And Utilities": number | null;
+    "total": number | null;
+    "startDate": string | null;
+    "no_transactions": boolean;
 }
 
-// Line chart function 
-const getLineChartData = (transactionsResponse: any) => {
-    let lineChartData = new Array();
-    let monthsContainingData = new Array();
-    let categoriesContainingData = new Array();
-    for (let i = 0; i < 12; i++) {
-        const monthsArray = getMonthDatesInArray('2022', `${i + 1}`);
-        let month;
-        if (i <= 9) {
-            let startDate = '';
-            const lastDay = monthsArray[monthsArray.length - 1].split('-')[2];
-            let endDate = moment(`2022-0${i + 1}-${lastDay}`, 'YYYY-MM-DD').format("YYYY-MM-DD");
-            month = moment().month(`0${i}`).format('MMMM');
-            let totalSpent = 0;
-            let totalTransactions = 0;
-            let transactionsByCategory: any = {
-                'Income': 0,
-                'Transfer In': 0,
-                'Transfer Out': 0,
-                'Loan Payments': 0,
-                'Bank Fees': 0,
-                'Entertainment': 0,
-                'Food And Drink': 0,
-                'General Merchandise': 0,
-                'Home Improvement': 0,
-                'Medical': 0,
-                'Personal Care': 0,
-                'General Services': 0,
-                'Government And Non-Profit': 0,
-                'Transportation': 0,
-                'Travel': 0,
-                'Rent And Utilities': 0,
-                startDate: ''
-            }
+const renameAndDeleteFinalRes = (final:any) => {
+    for (let i = 0; i < final.length; i++) {
+        // console.log(final[i]);
+        final[i]['Income'] = final[i]['INCOME'];
+        delete final[i]['INCOME'];
+        final[i]['Transfer In'] = final[i]['TRANSFER_IN'];
+        delete final[i]['TRANSFER_IN'];
+        final[i]['Transfer Out'] = final[i]['TRANSFER_OUT'];
+        delete final[i]['TRANSFER_OUT'];
+        final[i]['Loan Payments'] = final[i]['LOAN_PAYMENTS'];
+        delete final[i]['LOAN_PAYMENTS'];
+        final[i]['Bank Fees'] = final[i]['BANK_FEES'];
+        delete final[i]['BANK_FEES'];
+        final[i]['Entertainment'] = final[i]['ENTERTAINMENT'];
+        delete final[i]['ENTERTAINMENT'];
+        final[i]['Food And Drink'] = final[i]['FOOD_AND_DRINK'];
+        delete final[i]['FOOD_AND_DRINK'];
+        final[i]['General Merchandise'] = final[i]['GENERAL_MERCHANDISE'];
+        delete final[i]['GENERAL_MERCHANDISE'];
+        final[i]['Home Improvement'] = final[i]['HOME_IMPROVEMENT'];
+        delete final[i]['HOME_IMPROVEMENT'];
+        final[i]['Medical'] = final[i]['MEDICAL'];
+        delete final[i]['MEDICAL'];
+        final[i]['Personal Care'] = final[i]['PERSONAL_CARE'];
+        delete final[i]['PERSONAL_CARE'];
+        final[i]['General Services'] = final[i]['GENERAL_SERVICES'];
+        delete final[i]['GENERAL_SERVICES'];
+        final[i]['Government And Non-Profit'] = final[i]['GOVERNMENT_AND_NON_PROFIT'];
+        delete final[i]['GOVERNMENT_AND_NON_PROFIT'];
+        final[i]['Transportation'] = final[i]['TRANSPORTATION'];
+        delete final[i]['TRANSPORTATION'];
+        final[i]['Travel'] = final[i]['TRAVEL'];
+        delete final[i]['TRAVEL'];
+        final[i]['Rent And Utilities'] = final[i]['RENT_AND_UTILITIES'];
+        delete final[i]['RENT_AND_UTILITIES'];
+    }
+    return final;
+}
 
-            transactionsResponse.forEach((transaction: any) => {
-                const amount = Math.abs(transaction.amount);
-                if (monthsArray.includes(transaction.date) && transaction.merchant_name !== undefined) {
-                    totalSpent += amount;
-                    totalTransactions++;
-                    const categoryName: string = makeFirstLetterUpperCase(transaction.personal_finance_category.primary);
-                    transactionsByCategory[categoryName] += amount;
-                    startDate = transaction.date;
-                }
-            });
 
-            lineChartData.push({
-                name: `${month} | ${startDate}-${endDate}`,
+const newGetLineChartData = (response: TransactionsGetResponse) => {
+    const transactions = response.data.transactions;
+    let initialList: any = [];
+    let final: any = [];
+    let categories: string[] = [];
+    let months:any = {
+        2020: [],
+        2021: [],
+        2022: []
+    };
+    let monthsAlreadyChecked: string[] = [];
+    if (transactions.length == 0) {
+        return {
+            final: [{
+                time_period: null,
+                name: null,
+                month: null,
+                INCOME: 0,
+                TRANSFER_IN: 0,
+                TRANSFER_OUT: 0,
+                LOAN_PAYMENTS: 0,
+                BANK_FEES: 0,
+                ENTERTAINMENT: 0,
+                FOOD_AND_DRINK: 0,
+                GENERAL_MERCHANDISE: 0,
+                HOME_IMPROVEMENT: 0,
+                MEDICAL: 0,
+                PERSONAL_CARE: 0,
+                GENERAL_SERVICES: 0,
+                GOVERNMENT_AND_NON_PROFIT: 0,
+                TRANSPORTATION: 0,
+                TRAVEL: 0,
+                RENT_AND_UTILITIES: 0,
+                total: 0,
+                startDate: null,
+                no_transactions: true
+            }],
+            categories: categories,
+            months: months
+        }
+    }
+    for (let i = 0; i < transactions.length; i++) {
+        const categoryNameForKey = transactions[i].personal_finance_category.primary.split('-').join('_');
+        initialList.push({
+            amount: transactions[i].amount,
+            date: transactions[i].date,
+            category: makeFirstLetterUpperCase(transactions[i].personal_finance_category.primary),
+            category_name: categoryNameForKey,
+            account_id: transactions[i].account_id,
+            merchant_name: transactions[i].merchant_name,
+            name: transactions[i].name,
+            transaction_id: transactions[i].transaction_id
+        })
+    }
+    for (let i = 0; i < initialList.length; i++) {
+        const simpleDate = moment(initialList[i].date, 'YYYY-MM-DD').format('MMMM-YYYY');
+        const cleanDate = moment(initialList[i].date, 'YYYY-MM-DD').format('MMMM YYYY');
+        const month = moment(initialList[i].date, 'YYYY-MM-DD').format('MMMM');
+        const year  = moment(initialList[i].date, 'YYYY-MM-DD').format('YYYY');
+        if (!monthsAlreadyChecked.includes(simpleDate)) {
+            monthsAlreadyChecked.push(simpleDate);
+            final.push({
+                time_period: simpleDate,
+                name: cleanDate,
                 month: month,
-                'Income': transactionsByCategory['Income'],
-                'Transfer In': transactionsByCategory['Transfer In'],
-                'Transfer Out': transactionsByCategory['Transfer Out'],
-                'Loan Payments': transactionsByCategory['Loan Payments'],
-                'Bank Fees': transactionsByCategory['Bank Fees'],
-                'Entertainment': transactionsByCategory['Entertainment'],
-                'Food And Drink': transactionsByCategory['Food And Drink'],
-                'General Merchandise': transactionsByCategory['General Merchandise'],
-                'Home Improvement': transactionsByCategory['Home Improvement'],
-                'Medical': transactionsByCategory['Medical'],
-                'Personal Care': transactionsByCategory['Personal Care'],
-                'General Services': transactionsByCategory['General Services'],
-                'Government And Non-Profit': transactionsByCategory['Government And Non-Profit'],
-                'Transportation': transactionsByCategory['Transportation'],
-                'Travel': transactionsByCategory['Travel'],
-                'Rent And Utilities': transactionsByCategory['Rent And Utilities'],
-                total: roundUnevenNumbers(totalSpent),
-                startDate: transactionsByCategory.startDate
+                INCOME: 0,
+                TRANSFER_IN: 0,
+                TRANSFER_OUT: 0,
+                LOAN_PAYMENTS: 0,
+                BANK_FEES: 0,
+                ENTERTAINMENT: 0,
+                FOOD_AND_DRINK: 0,
+                GENERAL_MERCHANDISE: 0,
+                HOME_IMPROVEMENT: 0,
+                MEDICAL: 0,
+                PERSONAL_CARE: 0,
+                GENERAL_SERVICES: 0,
+                GOVERNMENT_AND_NON_PROFIT: 0,
+                TRANSPORTATION: 0,
+                TRAVEL: 0,
+                RENT_AND_UTILITIES: 0,
+                total: 0,
+                startDate: cleanDate,
+                no_transactions: false
             })
-
-        } else {
-            let startDate = '';
-            const lastDay = monthsArray[monthsArray.length - 1].split('-')[2];
-            let endDate = moment(`2022-${i + 1}-${lastDay}`, 'YYYY-MM-DD').format("YYYY-MM-DD");
-            month = moment().month(`${i}`).format('MMMM');
-            let totalSpent = 0;
-            let totalTransactions = 0;
-            let transactionsByCategory: any = {
-                'Income': 0,
-                'Transfer In': 0,
-                'Transfer Out': 0,
-                'Loan Payments': 0,
-                'Bank Fees': 0,
-                'Entertainment': 0,
-                'Food And Drink': 0,
-                'General Merchandise': 0,
-                'Home Improvement': 0,
-                'Medical': 0,
-                'Personal Care': 0,
-                'General Services': 0,
-                'Government And Non-Profit': 0,
-                'Transportation': 0,
-                'Travel': 0,
-                'Rent And Utilities': 0,
-                startDate: ''
-            };
-
-            transactionsResponse.forEach((transaction: any) => {
-                if (monthsArray.includes(transaction.date) && transaction.merchant_name !== undefined) {
-                    const amount = Math.abs(transaction.amount);
-                    totalSpent += amount;
-                    totalTransactions++;
-                    const categoryName: string = makeFirstLetterUpperCase(transaction.personal_finance_category.primary);
-                    transactionsByCategory[categoryName] += amount;
-                    startDate = transaction.date;
-                }
-            });
-
-            lineChartData.push({
-                name: `${month} | ${startDate}-${endDate}`,
-                month: month,
-                'Income': transactionsByCategory['Income'],
-                'Transfer In': transactionsByCategory['Transfer In'],
-                'Transfer Out': transactionsByCategory['Transfer Out'],
-                'Loan Payments': transactionsByCategory['Loan Payments'],
-                'Bank Fees': transactionsByCategory['Bank Fees'],
-                'Entertainment': transactionsByCategory['Entertainment'],
-                'Food And Drink': transactionsByCategory['Food And Drink'],
-                'General Merchandise': transactionsByCategory['General Merchandise'],
-                'Home Improvement': transactionsByCategory['Home Improvement'],
-                'Medical': transactionsByCategory['Medical'],
-                'Personal Care': transactionsByCategory['Personal Care'],
-                'General Services': transactionsByCategory['General Services'],
-                'Government And Non-Profit': transactionsByCategory['Government And Non-Profit'],
-                'Transportation': transactionsByCategory['Transportation'],
-                'Travel': transactionsByCategory['Travel'],
-                'Rent And Utilities': transactionsByCategory['Rent And Utilities'],
-                total: roundUnevenNumbers(totalSpent),
-                startDate: transactionsByCategory.startDate
-            })
-
+        }
+        if (!months[year].includes(month)) months[year].push(month);
+        if (!categories.includes(initialList[i].category)) categories.push(initialList[i].category)
+        const index = final.findIndex((e:any )=> e.time_period === simpleDate);
+        if (index !== -1) {
+            final[index][initialList[i].category_name] += initialList[i].amount;
+            final[index].total += initialList[i].amount;
         }
     }
 
-    let finalData2 = new Array();
+    /*
+Income: 0,
+                "Transfer In": 0,
+                "Transfer Out": 0,
+                "Loan Payments": 0,
+                "Bank Fees": 0,
+                "Entertainment": 0,
+                "Food And Drink": 0,
+                "General Merchandise": 0,
+                "Home Improvement": 0,
+                "Medical": 0,
+                "Personal Care": 0,
+                "General Services": 0,
+                "Government And Non Profit": 0,
+                "Transportation": 0,
+                "Travel": 0,
+                "Rent And Utilities": 0,
+*/
 
-    for (let i = 0; i < lineChartData.length; i++) {
-        const month = lineChartData[i].month;
-        const element = lineChartData[i];
-        if (element.total !== 0) {
-            monthsContainingData.push(month);
-            if (element['Income'] !== 0 && !categoriesContainingData.includes('Income')) categoriesContainingData.push('Income');
-            if (element['Transfer In'] !== 0 && !categoriesContainingData.includes('Transfer In')) categoriesContainingData.push('Transfer In');
-            if (element['Transfer Out'] !== 0 && !categoriesContainingData.includes('Transfer Out')) categoriesContainingData.push('Transfer Out');
-            if (element['Loan Payments'] !== 0 && !categoriesContainingData.includes('Loan Payments')) categoriesContainingData.push('Loan Payments');
-            if (element['Bank Fees'] !== 0 && !categoriesContainingData.includes('Bank Fees')) categoriesContainingData.push('Bank Fees');
-            if (element['Entertainment'] !== 0 && !categoriesContainingData.includes('Entertainment')) categoriesContainingData.push('Entertainment');
-            if (element['Food And Drink'] !== 0 && !categoriesContainingData.includes('Food And Drink')) categoriesContainingData.push('Food And Drink');
-            if (element['General Merchandise'] !== 0 && !categoriesContainingData.includes('General Merchandise')) categoriesContainingData.push('General Merchandise');
-            if (element['Home Improvement'] !== 0 && !categoriesContainingData.includes('Home Improvement')) categoriesContainingData.push('Home Improvement');
-            if (element['Medical'] !== 0 && !categoriesContainingData.includes('Medical')) categoriesContainingData.push('Medical');
-            if (element['Personal Care'] !== 0 && !categoriesContainingData.includes('Personal Care')) categoriesContainingData.push('Personal Care');
-            if (element['General Services'] !== 0 && !categoriesContainingData.includes('General Services')) categoriesContainingData.push('General Services');
-            if (element['Government And Non-Profit'] !== 0 && !categoriesContainingData.includes('Government And Non-Profit')) categoriesContainingData.push('Government And Non-Profit');
-            if (element['Transportation'] !== 0 && !categoriesContainingData.includes('Transportation')) categoriesContainingData.push('Transportation');
-            if (element['Travel'] !== 0 && !categoriesContainingData.includes('Travel')) categoriesContainingData.push('Travel');
-            if (element['Rent And Utilities'] !== 0 && !categoriesContainingData.includes('Rent And Utilities')) categoriesContainingData.push('Rent And Utilities');
-            finalData2.push(lineChartData[i]);
-        } 
+    return {
+        final: renameAndDeleteFinalRes(final),
+        categories: categories,
+        months: months
     }
-    return {lineChartData, categoriesContainingData, monthsContainingData, finalData2};
-};
+}
 
 const colorsTreeMap: any = {
     January: '#00FFFF',
@@ -389,32 +406,15 @@ router.get('/', async (req: any, res: any, next: any) => {
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
     const queryType = req.query.queryType;
-
-    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-    const requiredParams = ['user_id', 'startDate', 'endDate'];
-    const params = {
-        user_id: user_id,
-        startDate: startDate,
-        endDate: endDate,
-    };
-    const nextApiUrl = '/api/earmark/dashboard';
-    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-        await res.status(400);
-        await res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-        return;
-    };
-    // END ERROR HANDLING CODE
-
-    const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
+    const accessTokens = await getAccessTokens(user_id);
 
     let finalResponse;
     let finalStatus;
     let requestIds = new Array();
     for (let i = 0; i < accessTokens.length; i++) {
         try {
-            // @ts-ignore
-            const request: TransactionsGetRequest = {
+
+            const request: InstanceType<typeof TransactionsGetRequest> = {
                 access_token: accessTokens[i],
                 start_date: startDate,
                 end_date: endDate,
@@ -422,15 +422,14 @@ router.get('/', async (req: any, res: any, next: any) => {
                     include_personal_finance_category: true,
                 },
             };
-            const response = await client.transactionsGet(request);
+            const response: TransactionsGetResponse = await client.transactionsGet(request);
             const transactionsResponse = response.data.transactions;
             requestIds.push(response.data.request_id);
             if (queryType === 'lineChart') {
                 finalResponse = {
-                    final: getLineChartData(transactionsResponse).finalData2,
-                    lineChart: getLineChartData(transactionsResponse).lineChartData,
-                    categories: getLineChartData(transactionsResponse).categoriesContainingData,
-                    months: getLineChartData(transactionsResponse).monthsContainingData,
+                    final: await newGetLineChartData(response).final,
+                    categories: await newGetLineChartData(response).categories,
+                    months: await newGetLineChartData(response).months,
                     statusCode: 200,
                     statusMessage: "Success",
                     metaData: {
@@ -440,14 +439,14 @@ router.get('/', async (req: any, res: any, next: any) => {
                         nextApiUrl: "/api/earmark/visuals",
                         method: "GET",
                     },
-                  };
-                  finalStatus = 200;
-            } else if (queryType === 'barChart') {
+                };
+                finalStatus = 200;
+            }
+            else if (queryType === 'barChart') {
                 finalResponse = {
-                    final: getLineChartData(transactionsResponse).finalData2,
-                    lineChart: getLineChartData(transactionsResponse).lineChartData,
-                    categories: getLineChartData(transactionsResponse).categoriesContainingData,
-                    months: getLineChartData(transactionsResponse).monthsContainingData,
+                    final: await newGetLineChartData(response).final,
+                    categories: await newGetLineChartData(response).categories,
+                    months: await newGetLineChartData(response).months,
                     statusCode: 200,
                     statusMessage: "Success",
                     metaData: {
@@ -459,7 +458,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                     },
                   };
                   finalStatus = 200;
-            } else if (queryType === 'pieChart') {
+            }
+            else if (queryType === 'pieChart') {
                 finalResponse = {
                     final: getPieChartData(transactionsResponse),
                     statusCode: 200,
@@ -473,7 +473,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                     },
                   };
                 finalStatus = 200;
-            } else if (queryType === 'treemap') {
+            }
+            else if (queryType === 'treemap') {
                 const getTreemapData = async (transactionsResponse: any) => {
                     let treeMapData = new Array();
                     transactionsResponse.forEach((transaction: any) => {
@@ -490,7 +491,8 @@ router.get('/', async (req: any, res: any, next: any) => {
             }
 
         } catch (error) {
-            console.error('inside catch')
+            console.error('inside catch');
+            console.error(error);
             finalStatus = 400;
             finalResponse = error;
         };
@@ -502,63 +504,3 @@ router.get('/', async (req: any, res: any, next: any) => {
 });
 
 module.exports = router;
-
-/*
-const data = [
-  {
-    name: "Jan",
-    children: [
-      { name: "Food", size: 100, fill: "brown" },
-      { name: "Transport", size: 200, fill: "brown" },
-      { name: "Clothes", size: 300, fill: "brown" },
-      { name: "Entertainment", size: 400, fill: "brown" },
-      { name: "Education", size: 500, fill: "brown" },
-      { name: "Health", size: 600, fill: "brown" },
-    ]
-  },
-  {
-    name: "Feb",
-    children: [
-      { name: "Food", size: 125, fill: "purple" },
-      { name: "Transport", size: 225, fill: "purple" },
-      { name: "Clothes", size: 325, fill: "purple" },
-      { name: "Entertainment", size: 425, fill: "purple" },
-      { name: "Education", size: 525, fill: "purple" },
-      { name: "Health", size: 625, fill: "purple" },
-    ]
-  },
-  {
-    name: "Mar",
-    children: [
-      { name: "Food", size: 150, fill: "green" },
-      { name: "Transport", size: 250, fill: "green" },
-      { name: "Clothes", size: 350, fill: "green" },
-      { name: "Entertainment", size: 450, fill: "green" },
-      { name: "Education", size: 550, fill: "green" },
-      { name: "Health", size: 650, fill: "green" },
-    ]
-  },
-  {
-    name: "Apr",
-    children: [
-      { name: "Food", size: 175, fill: "red" },
-      { name: "Transport", size: 275, fill: "red" },
-      { name: "Clothes", size: 375, fill: "red" },
-      { name: "Entertainment", size: 475, fill: "red" },
-      { name: "Education", size: 575, fill: "red" },
-      { name: "Health", size: 675, fill: "red" },
-    ]
-  },
-  {
-    name: "May",
-    children: [
-      { name: "Food", size: 2000, fill: 'blue' },
-      { name: "Transport", size: 300, fill: 'blue' },
-      { name: "Clothes", size: 400, fill: 'blue' },
-      { name: "Entertainment", size: 500, fill: 'blue' },
-      { name: "Education", size: 600, fill: 'blue' },
-      { name: "Health", size: 700, fill: 'blue' },
-    ]
-  }
-];
-*/

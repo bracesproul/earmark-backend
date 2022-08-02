@@ -1,17 +1,21 @@
 /* eslint-disable */
 import dotenv from 'dotenv';
 dotenv.config();
-
-import { paramErrorHandling } from '../../../../lib/Errors/paramErrorHandling';
-
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const updateFirestoreE = require('../../../../lib/firebase/firestore');
-const { Configuration, PlaidApi, PlaidEnvironments, ItemPublicTokenExchangeRequest } = require("plaid");
+const { addAccessTokens } = require('../../../../lib/firebase/firestore');
+const { addAccessTokenToDB } = require('../../../../services/db')
+const { Configuration,
+  PlaidApi,
+  PlaidEnvironments,
+  AccountsGetRequest
+} = require("plaid");
 const { initializeApp } = require("firebase/app");
-const { getFirestore, doc, setDoc } = require("firebase/firestore");
-
+const { getFirestore,
+  doc,
+  setDoc
+} = require("firebase/firestore");
 
 const configuration = new Configuration({
     basePath: PlaidEnvironments[process.env.PLAID_ENV],
@@ -41,26 +45,77 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
+const getIndividualAccountData = (accounts:any, institution_name:string) => {
+  return accounts.map((account:any) => {
+    return {
+      account_id: account.account_id,
+      institution_name: institution_name,
+      account_type: account.type,
+      account_subtype: account.subtype,
+      name: account.name,
+      official_name: account.official_name,
+    }
+  })
+}
+
+const checkForTransactionsByAccount = (accounts:any) => {
+  return accounts.map((account:any) => {
+    if (account.type === "credit" || account.type === "depository") {
+      return {
+        account_id: account.account_id, available: true
+      }
+    } else {
+      return {
+        account_id: account.account_id, available: false
+      }
+    }
+  })
+}
+
+const getAccountData = async (accessToken:string, userId:string) => {
+  try {
+    // @ts-ignore
+    const accountsRequest: AccountsGetRequest = {
+      access_token: accessToken,
+    };
+    const { data } = await client.accountsGet(accountsRequest);
+    const accounts = data.accounts;
+    const item = data.item;
+
+    // @ts-ignore
+    const insRequest: InstitutionsGetByIdRequest = {
+      institution_id: item.institution_id,
+      country_codes: ['US'],
+    };
+    const insResponse = await client.institutionsGetById(insRequest);
+    const institution = insResponse.data.institution;
+    const institution_name = institution.name;
+
+    return {
+      access_token: accessToken,
+      account_data: getIndividualAccountData(accounts, institution_name),
+      account_ids: accounts.map((account:any) => account.account_id),
+      account_types: accounts.map((account:any) => account.subtype),
+      institution_name: institution_name,
+      institution_id: item.institution_id,
+      user_id: userId,
+      transactions_available: checkForTransactionsByAccount(accounts),
+    }
+
+  } catch (error) {
+    console.error(error);
+    return {
+      error: true,
+      message: 'error getting access token/account data',
+      errorMessage: error
+    }
+  }
+}
+
 
 router.post('/', async (req: any, res: any, next: any) => {
   const publicToken = req.query.publicToken;
   const userId = req.query.user_id;
-  
-  // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-  const requiredParams = ['publicToken', 'user_id'];
-  const params = {
-    publicToken: publicToken,
-    user_id: userId
-  };
-  const nextApiUrl = '/api/plaid/item/public_token/exchange';
-  if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-      console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-      res.status(400);
-      res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-      return;
-  };
-  // END ERROR HANDLING CODE
-
   let finalResponse;
   let finalStatus;
   let institution_id;
@@ -77,11 +132,11 @@ router.post('/', async (req: any, res: any, next: any) => {
   try {
     const response = await client.itemPublicTokenExchange(request);
     const accessToken = response.data.access_token;
-    /* @ts-ignore */
+/*    /!* @ts-ignore *!/
     const itemGetRequest: ItemGetRequest = {
       access_token: accessToken,
     };
-    /* @ts-ignore */
+    /!* @ts-ignore *!/
     const authRequest: AuthGetRequest = {
       access_token: accessToken,
     };
@@ -124,7 +179,18 @@ router.post('/', async (req: any, res: any, next: any) => {
       institution_name: institution_name,
     }
 
-    await updateFirestoreE.addAccessTokens(userId, params);
+    await addAccessTokens(userId, params);*/
+    getAccountData(accessToken, userId)
+        .then((data:any) => {
+          finalResponse = "Successfully generated access token";
+          finalStatus = 200;
+          addAccessTokenToDB(userId, accessToken, data);
+        })
+        .catch((error:any) => {
+            finalResponse = "Error generating access token // setting access token in db";
+            finalStatus = 500;
+            console.error(error);
+        })
 
     finalResponse = "Successfully generated access token";
     finalStatus = 200;

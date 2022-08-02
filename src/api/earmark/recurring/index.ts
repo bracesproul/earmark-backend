@@ -1,5 +1,53 @@
 /* eslint-disable */
-import axios from 'axios';
+// TODO: Redo all, this is a mess
+/*
+* final struct should look like this
+*/
+
+/*
+const finalStruct:any = [
+    {
+        account_ids: [
+            'account_id_1',
+            'account_id_2',
+            'account_id_3',
+        ],
+        recurring_transactions: {
+            account_id_1: [
+                {
+                    col1: "Sparkfun",
+                    col2: "$1072.80",
+                    col3: "$89.39",
+                    col4: 12,
+                    col5: "2021-01-06",
+                    col6: "2021-12-02",
+                    col7: "Food And Drink",
+                    recurring_transaction_id: "recurring_transaction_id_1",
+                    acc_id: "W6nERzZxRpcp1Ag87E5ph1g5pdpDr1uw54Een",
+                },
+                {...},
+            ],
+            account_id_2: [...],
+            account_id_3: [...],
+        },
+        all_recurring_transactions: {
+            recurring_transaction_id_1: [
+                {
+                    col1: "Sparkfun",
+                    col2: "2021-12-02",
+                    col3: "$89.40",
+                    col4: "Food And Drink",
+                    id: "4edljzwl65gg40m-4edljzwl65gg40n",
+                    recurring_transaction_id: "recurring_transaction_id_1",
+                    acc_id: "W6nERzZxRpcp1Ag87E5ph1g5pdpDr1uw54Een",
+                },
+                {...}
+            ]
+        }
+    }
+]
+*/
+
 import dotenv from 'dotenv';
 const moment = require('moment');
 const parseNumbers = require('../../../lib/parseNumbers');
@@ -7,12 +55,27 @@ const uniqid = require('uniqid');
 const { makeStringJustLetterAndNumber } = require('../../../lib/parsing/formatString');
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
-import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
-const updateFirestore = require('../../../lib/firebase/firestore/');
+const { getAccessTokens } = require('../../../services/db');
 const express = require('express');
 const router = express.Router();
 
-const API_URL = globalVars().API_URL;
+const { Configuration,
+    PlaidApi,
+    PlaidEnvironments,
+    TransactionsGetRequest
+} = require('plaid');
+
+const configuration = new Configuration({
+    basePath: PlaidEnvironments[process.env.PLAID_ENV],
+    baseOptions: {
+        headers: {
+            'PLAID-CLIENT-ID': process.env.CLIENT_ID,
+            'PLAID-SECRET': process.env.SECRET,
+            'Plaid-Version': '2020-09-14',
+        },
+    },
+});
+const client = new PlaidApi(configuration);
 
 const getDateRange = (date:string)=> {
     const lowDate = parseInt(moment(date, 'YYYY-MM-DD').subtract(1, 'days').format('DD-MM-YYYY').split('-')[0]);
@@ -122,49 +185,43 @@ router.get('/', async (req: any, res: any, next: any) => {
     const user_id = req.query.user_id;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
-
-
-    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-    const requiredParams = ['user_id', 'startDate', 'endDate'];
-    const params = {
-        user_id: user_id,
-        startDate: startDate,
-        endDate: endDate,
-    };
-    const nextApiUrl = '/api/earmark/allTransactions';
-    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-        await res.status(400);
-        await res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-        return;
-    };
-    // END ERROR HANDLING CODE
-    let finalResponse;
+    let finalResponse:any = [{
+        recurring_transactions: [],
+        accounts: [],
+        statusCode: null,
+        message: "",
+        error: null,
+        metaData: {
+            requestTime: new Date().toLocaleString(),
+            nextApiUrl: "/api/earmark/recurring",
+            backendApiUrl: "/api/recurring",
+            method: "GET",
+        },
+    }];
     let finalStatus;
 
-    const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
+    const accessTokens = await getAccessTokens(user_id);
     for (let i = 0; i < accessTokens.length; i++) {
         try {
-            
-            const config = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'earmark-api-key': process.env.EARMARK_API_KEY,
-                },
-                url: API_URL + "/api/plaid/transactions/get",
-                params: {
-                    user_id: user_id,
-                    access_token: accessTokens[i],
-                    startDate: startDate,
-                    endDate: endDate,
-                },
-                method: "GET"
-            }
-            const { data } = await axios(config);
+            /* @ts-ignore */
+            const request: TransactionsGetRequest = {
+                access_token: accessTokens[i],
+                start_date: startDate,
+                end_date: endDate,
+                options: {
+                    include_personal_finance_category: true
+                }
+            };
+            const { data } = await client.transactionsGet(request);
             let txns:any = [];
             let txnNames: any = [];
 
-            data.transactions.transactions.forEach((transaction:any) => {
+            if (data.transactions.length == 0) {
+                console.log('no txns');
+                continue;
+            }
+
+            data.transactions.forEach((transaction:any) => {
                 let name = transaction.merchant_name;
                 if (!name) name = transaction.name
                 if (!txnNames.includes(name)) txnNames.push(name);
@@ -194,8 +251,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                     }
                 })
             }
-            let finalTxnArr:any = [{transactions: {}}]
-
 
             let recTxnMap:any = {};
             recurringTxns.forEach((recTxn:any) => {
@@ -227,9 +282,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                 let merchant_name:string;
                 let totalAmountCounter:number = 0;
                 let transactionCounter:number = 0;
-                // const datesArray:string[] = recTxnMap[key].allDates;
-                const firstDate = getFirstAndLastDate(recTxnMap[key].allDates).firstDate;
-                const lastDate = getFirstAndLastDate(recTxnMap[key].allDates).lastDate;
                 let category:string;
 
                 recTxnMap[key].transactions.forEach((txn:any) => {
@@ -245,7 +297,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                     category = makeStringJustLetterAndNumber(txn.category)
                     recTxnMap[key].transactionIds.push({ txn_id: txn.transaction_id, txn_date: txn.date })
                 });
-                
+
                 recTxnMap[key].transactions.every((txn:any) => {
                     const splitDate = `${txn.date.split('-')[0]}${txn.date.split('-')[1]}`
 
@@ -256,7 +308,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 });
             })
 
-            
+
             Object.keys(recTxnMap).map((key:any) => {
                 const datesArray = recTxnMap[key].allDates;
                 let totalAmountCounter = 0;
@@ -319,25 +371,17 @@ router.get('/', async (req: any, res: any, next: any) => {
                 }
             })
 
-            finalResponse = {
-                recurring_transactions: merchant_transactions_and_overview,
-                statusCode: 200,
-                statusMessage: "Success",
-                metaData: {
-                    requestTime: new Date().toLocaleString(),
-                    nextApiUrl: "/api/earmark/recurring",
-                    backendApiUrl: "/api/recurring",
-                    method: "GET",
-                },
-            };
+            finalResponse.recurring_transactions.push(merchant_transactions_and_overview);
+            finalResponse.statusCode = 200;
+            finalResponse.message = "Success";
             finalStatus = 200;
         } catch (error) {
             finalStatus = 400;
-            finalResponse = error;
-        };
-    };
-
-
+            finalResponse.statusCode = 400;
+            finalResponse.message = "Error";
+            finalResponse.error = error;
+        }
+    }
     await res.status(finalStatus);
     await res.send(finalResponse);
     await res.end();

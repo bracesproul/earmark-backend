@@ -4,8 +4,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 const parseNumbers = require('../../../lib/parseNumbers');
 const globalVars = require('../../../lib/globalVars');
-import { paramErrorHandling } from '../../../lib/Errors/paramErrorHandling'
-const updateFirestore = require('../../../lib/firebase/firestore/');
+const { getDynamicTransactions } = require('../../../lib/firebase/firestore');
+const { getAccessTokenByInstitution } = require('../../../services/db');
 const express = require('express');
 const router = express.Router();
 const { 
@@ -40,47 +40,31 @@ const client = new PlaidApi(configuration);
 const API_URL = globalVars().API_URL;
 
 router.get('/', async (req: any, res: any, next: any) => {
+    console.log('running')
     const user_id = req.query.user_id;
     const page_id = req.query.page_id;
     const startDate = req.query.startDate;
     const endDate = req.query.endDate;
-
-    // ERROR HANDLING, CHECKS FOR MISSING PARAMS
-    const requiredParams = ['user_id', 'page_id'];
-    const params = {
-        user_id: user_id,
-        page_id: page_id,
-    };
-    const nextApiUrl = '/api/earmark/getDynamicTransactions';
-    if ((await paramErrorHandling(requiredParams, params, nextApiUrl)).error) {
-        console.error((await paramErrorHandling(requiredParams, params, nextApiUrl)).errorMessage);
-        await res.status(400);
-        await res.json((await paramErrorHandling(requiredParams, params, nextApiUrl)).jsonErrorMessage);
-        return;
-    };
-
-    // END ERROR HANDLING CODE
     let finalResponse;
-    let finalStatus = 400;
+    let finalStatus;
     try {
-
         let accounts: any = new Array();
-
-        const firebaseResponse = await updateFirestore.getDynamicTransactions(user_id, page_id);
-        firebaseResponse.accountInfo.account_data.forEach((account: any) => {
-            const accObj: any = {account: {
-                account_id: account.account_id,
-                account_name: account.name,
-                subtype: account.subtype,
-                institution_name: account.institution_name,
-                transactions: [],
-            }
+        const firebaseResponse = await getAccessTokenByInstitution(user_id, page_id);
+        firebaseResponse[0].accountInfo.account_data.forEach((account: any) => {
+            const accObj: any = {
+                account: {
+                    account_id: account.account_id,
+                    account_name: account.name,
+                    subtype: account.subtype,
+                    institution_name: account.institution_name,
+                    transactions: [],
+                }
             }
             accounts.push(accObj);
         });
         // @ts-ignore
         const request: TransactionsGetRequest = {
-            access_token: firebaseResponse.accessTokens,
+            access_token: firebaseResponse[0].accessToken,
             start_date: startDate,
             end_date: endDate,
             options: {
@@ -89,6 +73,7 @@ router.get('/', async (req: any, res: any, next: any) => {
         };
 
         const { data } = await client.transactionsGet(request);
+
         data.transactions.forEach((transaction: any) => {
             accounts.forEach((account: any) => {
                 let name = transaction.merchant_name;
@@ -117,6 +102,7 @@ router.get('/', async (req: any, res: any, next: any) => {
         finalResponse = accounts;
         finalStatus = 200;
     } catch (error) {
+        console.error(error);
         finalStatus = 400;
         finalResponse = error;
     };
