@@ -1,15 +1,4 @@
 /* eslint-disable */
-/*
-  function createData(
-    name: string,
-    date: string,
-    amount: number,
-    category: string,
-  ) 
-*/
-
-/* eslint-disable */
-import axios from 'axios';
 import dotenv from 'dotenv';
 import {TransactionsGetResponse} from "plaid";
 dotenv.config();
@@ -358,22 +347,22 @@ const colorsTreeMap: any = {
 
 const getPieChartData = (transactionsResponse: any) => {
     let elements = [
-        { name: 'Income', value: 0, fill: '#00FFFF' },
-        { name: 'Transfer In', value: 0, fill: '#000000' },
-        { name: 'Transfer Out', value: 0, fill: '#0000FF' },
-        { name: 'Loan Payments', value: 0, fill: '#FF00FF' },
-        { name: 'Bank Fees', value: 0, fill: '#808080' },
-        { name: 'Entertainment', value: 0, fill: '#008000' },
+        { name: 'Income', value: 0, fill: '#607d8b' },
+        { name: 'Transfer In', value: 0, fill: '#ff5722' },
+        { name: 'Transfer Out', value: 0, fill: '#795548' },
+        { name: 'Loan Payments', value: 0, fill: '#9e9e9e' },
+        { name: 'Bank Fees', value: 0, fill: '#ffeb3b' },
+        { name: 'Entertainment', value: 0, fill: '#ffc107' },
         { name: 'Food And Drink', value: 0, fill: '#00FF00' },
-        { name: 'General Merchandise', value: 0, fill: '#800000' },
-        { name: 'Home Improvement', value: 0, fill: '#000080' },
-        { name: 'Medical', value: 0, fill: '#808000' },
-        { name: 'Personal Care', value: 0, fill: '#800080' },
-        { name: 'General Services', value: 0, fill: '#FF0000' },
-        { name: 'Government And Non-Profit', value: 0, fill: '#C0C0C0' },
-        { name: 'Transportation', value: 0, fill: '#008080' },
-        { name: 'Travel', value: 0, fill: '#804000' },
-        { name: 'Rent And Utilities', value: 0, fill: '#AAFFC3' },
+        { name: 'General Merchandise', value: 0, fill: '#ff9800' },
+        { name: 'Home Improvement', value: 0, fill: '#4caf50' },
+        { name: 'Medical', value: 0, fill: '#8bc34a' },
+        { name: 'Personal Care', value: 0, fill: '#cddc39' },
+        { name: 'General Services', value: 0, fill: '#009688' },
+        { name: 'Government And Non-Profit', value: 0, fill: '#00bcd4' },
+        { name: 'Transportation', value: 0, fill: '#03a9f4' },
+        { name: 'Travel', value: 0, fill: '#673ab7' },
+        { name: 'Rent And Utilities', value: 0, fill: '#3f51b5' },
     ]
 
     transactionsResponse.forEach((transaction: any) => {

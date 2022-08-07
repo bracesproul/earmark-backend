@@ -184,21 +184,63 @@ function breakupAccounts(accounts:any) {
     return accounts.map((account:any) => {
         return {
             account_id: account.account_id,
+            account_name: account.name,
+            subtype: account.subtype,
+            mask: account.mask,
             total_spending: {
-                totalSpent24Hours: 0,
-                totalSpent2Days: 0,
-                totalSpent7Days: 0,
-                totalSpent14Days: 0,
-                totalSpent30Days: 0,
-                totalSpent60Days: 0,
+                total1Day: {
+                    totalSpent: 0,
+                    totalSpentPrev: 0,
+                    spendingChange: 'no_change',
+                    title: '24 hours',
+                },
+                total7Days: {
+                    totalSpent: 0,
+                    totalSpentPrev: 0,
+                    spendingChange: 'no_change',
+                    title: '7 days',
+                },
+                total30Days: {
+                    totalSpent: 0,
+                    totalSpentPrev: 0,
+                    spendingChange: 'no_change',
+                    title: '30 days',
+                },
             }
         };
     })
 }
-async function newTotalSpending(transactionsResponse:any, accounts:any) {
-    let accountsSorted = breakupAccounts(accounts);
 
+type IAccountsSortedElement = {
+    account_id: string,
+    account_name: string,
+    subtype: string,
+    mask: string,
+    total_spending: {
+        total1Day: {
+            totalSpent: number,
+            totalSpentPrev: number,
+            spendingChange: string,
+        },
+        total7Days: {
+            totalSpent: number,
+            totalSpentPrev: number,
+            spendingChange: string,
+        },
+        total30Days: {
+            totalSpent: number,
+            totalSpentPrev: number,
+            spendingChange: string,
+        },
+    }
+}
+
+type IAccountsSorted = IAccountsSortedElement[];
+
+async function newTotalSpending(transactionsResponse:any, accounts:any) {
+    let accountsSortedNew:IAccountsSorted = breakupAccounts(accounts);
     for (let i = 0; i < transactionsResponse.length; i++) {
+
         const transactionDate = moment(transactionsResponse[i].date, 'YYYY-MM-DD');
         const currentDate = moment();
 
@@ -212,52 +254,71 @@ async function newTotalSpending(transactionsResponse:any, accounts:any) {
         const sixtyOneDaysAgo = moment([]).subtract(61, 'days');
 
         if (transactionDate == currentDate) {
-            accountsSorted.forEach((account:any) => {
+            accountsSortedNew.forEach((account:any) => {
                 if (account.account_id == transactionsResponse[i].account_id) {
-                    account.total_spending.totalSpent24Hours += transactionsResponse[i].amount;
+                    account.totalSpending.total1Day.totalSpent += transactionsResponse[i].amount;
                 }
             })
         }
         if (moment(transactionDate).isBetween(twoDaysAgo, oneDayAgo)) {
-            accountsSorted.forEach((account:any) => {
+            accountsSortedNew.forEach((account:any) => {
                 if (account.account_id == transactionsResponse[i].account_id) {
-                    account.total_spending.totalSpent2Days += transactionsResponse[i].amount;
+                    account.total_spending.total1Day.totalSpentPrev += transactionsResponse[i].amount;
                 }
             })
         }
 
         if (moment(transactionDate).isBetween(sevenDaysAgo, currentDate)) {
-            accountsSorted.forEach((account:any) => {
+            accountsSortedNew.forEach((account:any) => {
                 if (account.account_id == transactionsResponse[i].account_id) {
-                    account.total_spending.totalSpent7Days += transactionsResponse[i].amount;
+                    account.total_spending.total7Days.totalSpent += transactionsResponse[i].amount;
                 }
             })
         }
         if (moment(transactionDate).isBetween(fifteenDaysAgo, eightDaysAgo)) {
-            accountsSorted.forEach((account:any) => {
+            accountsSortedNew.forEach((account:any) => {
                 if (account.account_id == transactionsResponse[i].account_id) {
-                    account.total_spending.totalSpent14Days += transactionsResponse[i].amount;
+                    account.total_spending.total7Days.totalSpentPrev += transactionsResponse[i].amount;
                 }
             })
         }
 
+
         if (moment(transactionDate).isBetween(thirtyDaysAgo, currentDate)) {
-            accountsSorted.forEach((account:any) => {
+            accountsSortedNew.forEach((account:any) => {
                 if (account.account_id == transactionsResponse[i].account_id) {
-                    account.total_spending.totalSpent30Days += transactionsResponse[i].amount;
+                    account.total_spending.total30Days.totalSpent += transactionsResponse[i].amount;
                 }
             })
         }
         if (moment(transactionDate).isBetween(sixtyOneDaysAgo, thirtyOneDaysAgo)) {
-            accountsSorted.forEach((account:any) => {
+            accountsSortedNew.forEach((account:any) => {
                 if (account.account_id == transactionsResponse[i].account_id) {
-                    account.total_spending.totalSpent60Days += transactionsResponse[i].amount;
+                    account.total_spending.total30Days.totalSpentPrev += transactionsResponse[i].amount;
                 }
             })
         }
     }
-    console.log(accountsSorted);
-    return accountsSorted;
+    accountsSortedNew.forEach((account:any) => {
+        if (account.total_spending.total1Day.totalSpent > account.total_spending.total1Day.totalSpentPrev) {
+            account.total_spending.total1Day.spendingChange = 'more';
+        } else if (account.total_spending.total1Day.totalSpent < account.total_spending.total1Day.totalSpentPrev) {
+            account.total_spending.total1Day.spendingChange = 'less';
+        }
+
+        if (account.total_spending.total7Days.totalSpent > account.total_spending.total7Days.totalSpentPrev) {
+            account.total_spending.total7Days.spendingChange = 'more';
+        } else if (account.total_spending.total7Days.totalSpent < account.total_spending.total7Days.totalSpentPrev) {
+            account.total_spending.total7Days.spendingChange = 'less';
+        }
+
+        if (account.total_spending.total30Days.totalSpent > account.total_spending.total30Days.totalSpentPrev) {
+            account.total_spending.total30Days.spendingChange = 'more';
+        } else if (account.total_spending.total30Days.totalSpent < account.total_spending.total30Days.totalSpentPrev) {
+            account.total_spending.total30Days.spendingChange = 'less';
+        }
+    })
+    return accountsSortedNew;
 }
 
 // total spending function
@@ -544,10 +605,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                 const response = await client.transactionsGet(request);
                 const transactionsResponse = response.data.transactions;
 
-                await newTotalSpending(transactionsResponse, response.data.accounts);
-
                 finalResponse = {
-                    totalSpending: await totalSpendingFunction(transactionsResponse),
+                    totalSpending: await newTotalSpending(transactionsResponse, response.data.accounts),
                     statusCode: 200,
                     statusMessage: "Success",
                     metaData: {

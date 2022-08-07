@@ -1,13 +1,14 @@
 /* eslint-disable */
 export {};
 import dotenv from 'dotenv';
+import moment from 'moment';
+
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
 const updateFirestore = require('../../../lib/firebase/firestore/');
 const { getAccessTokens } = require('../../../services/db');
 const express = require('express');
 const router = express.Router();
-import moment from 'moment';
 
 const {
     Configuration,
@@ -69,10 +70,16 @@ const getCategories = (accounts:any, transactionList:any) => {
     })
 }
 
-
 const getTransactions = async (transactions:any, accounts:any) => {
     let transactionList:any = [];
     let categories:any = [];
+    if (transactions.length === 0) {
+        return {
+            transactions: null as null,
+            categories: null as null,
+            no_transactions: true,
+        }
+    }
     accounts.forEach((account:any) => {
         transactionList.push({
             account_id: account.account_id,
@@ -101,8 +108,14 @@ const getTransactions = async (transactions:any, accounts:any) => {
             }
         });
     });
+    // console.log(transactionList);
 
-    console.log(getCategories(accounts, transactionList));
+    // console.log(getCategories(accounts, transactionList));
+    return {
+        transactions: await transactionList,
+        categories: await getCategories(accounts, transactionList),
+        no_transactions: false,
+    }
 }
 
 router.get('/', async (req: any, res: any, next: any) => {
@@ -111,8 +124,8 @@ router.get('/', async (req: any, res: any, next: any) => {
     const endDate = req.query.endDate;
     const queryType = req.query.queryType;
     const test = req.query.test;
-    let finalResponse;
-    let finalStatus = 400;
+    let finalResponse:any = [];
+    let finalStatus;
 
     if (queryType === 'datagrid') {
         let full_response;
@@ -134,6 +147,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                 const { data } = await client.transactionsGet(request);
 
                 await getTransactions(data.transactions, data.accounts);
+
+                console.log(data);
 
                 full_response = data;
 
@@ -159,7 +174,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                 });
                 const uniqueChars = [...new Set(categoriesAvail)];
 
-                finalResponse = {
+/*                finalResponse = {
                     dataGridTransactions: dataGridTransactions,
                     transactionMetadata: transactionMetadata,
                     categoriesAvail: uniqueChars,
@@ -172,7 +187,14 @@ router.get('/', async (req: any, res: any, next: any) => {
                         method: "GET",
                         responses: full_response
                     },
-                };
+                };*/
+                finalResponse.push({
+                    institution: data.item.institution_id,
+                    data: {
+                        transactions: (await getTransactions(data.transactions, data.accounts)).transactions,
+                        categories: (await getTransactions(data.transactions, data.accounts)).categories,
+                    }
+                })
                 finalStatus = 200;
             } catch (error) {
                 console.error(error);
