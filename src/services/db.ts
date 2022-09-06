@@ -42,6 +42,7 @@ interface IAccessTokenData {
     institution_name:string;
     item_id:string;
     user_id:string;
+    transactions_available:any
 }
 
 
@@ -117,7 +118,14 @@ const addAccessTokenToDB = async (userId:string, accessToken:string, data:IAcces
     const userRef = db.collection('users').doc(userId).collection('access_tokens').doc(accessToken);
     try {
         await userRef.set({
-            data,
+            access_token: data.access_token,
+            account_data: data.account_data,
+            account_ids: data.account_ids,
+            account_types: data.account_types,
+            institution_name: data.institution_name,
+            institution_id: data.institution_id,
+            user_id: userId,
+            transactions_available: data.transactions_available,
             createdAt: FieldValue.serverTimestamp(),
             updatedAt: FieldValue.serverTimestamp()
         });
