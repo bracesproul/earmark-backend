@@ -4,8 +4,7 @@ dotenv.config();
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const { addAccessTokens } = require('../../../../lib/firebase/firestore');
-const { addAccessTokenToDB } = require('../../../../services/db')
+const { addAccessTokenToDB } = require('../../../../lib/firebase/firestore');
 const { Configuration,
   PlaidApi,
   PlaidEnvironments,

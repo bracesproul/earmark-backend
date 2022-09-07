@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import {TransactionsGetResponse} from "plaid";
 dotenv.config();
 const globalvars = require('../../../lib/globalVars');
-const { getAccessTokens } = require('../../../services/db');
+const { getAccessTokens } = require('../../../lib/firebase/firestore');
 const express = require('express');
 const moment = require('moment');
 const router = express.Router();

@@ -4,8 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const parseNumbers = require('../../../lib/parseNumbers');
 const globalVars = require('../../../lib/globalVars');
-const { getDynamicTransactions } = require('../../../lib/firebase/firestore');
-const { getAccessTokenByInstitution } = require('../../../services/db');
+const { getAccessTokensInstitution } = require('../../../lib/firebase/firestore');
 const express = require('express');
 const router = express.Router();
 const { 
@@ -49,7 +48,7 @@ router.get('/', async (req: any, res: any, next: any) => {
     let finalStatus;
     try {
         let accounts: any = new Array();
-        const firebaseResponse = await getAccessTokenByInstitution(user_id, page_id);
+        const firebaseResponse = await getAccessTokensInstitution(user_id, page_id);
         firebaseResponse[0].accountInfo.account_data.forEach((account: any) => {
             const accObj: any = {
                 account: {

@@ -1,3 +1,4 @@
+/*
 export {};
 const { initializeApp, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
@@ -208,7 +209,7 @@ module.exports = {
     addUserToDB
 }
 
-/*
+/!*
 * allAccountInfo: {
 *   getAccessTokens,
 * }
@@ -236,4 +237,4 @@ module.exports = {
 * visuals: {
 * getAccessTokensTransactions
 * }
-*/
+*!/*/

@@ -5,7 +5,6 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const validateApiKey = require('../middlewear/validateApiKey');
-const db = require('../services/db');
 
 
 import dotenv from 'dotenv';
@@ -126,6 +125,8 @@ const recurring = require('./earmark/recurring');
 const earmark_dashboard = require('./earmark/dashboard');
 const earmark_visuals = require('./earmark/visuals');
 const earmark_getDynamicTransactions = require('./earmark/getDynamicTransactions');
+const getAccountDetails = require('./earmark/getAccountDetails');
+const setAccountDetails = require('./earmark/setAccountDetails');
 
 app.use('/api/earmark/allAccountInfo', validateApiKey, earmark_allAccountInfo);
 app.use('/api/earmark/allTransactions', validateApiKey, earmark_allTransactions);
@@ -134,9 +135,12 @@ app.use('/api/earmark/public_token/exchange', validateApiKey, earmarkPublic_toke
 app.use('/api/earmark/getTransactionsByAccount', validateApiKey, getTransactionsByAccount);
 app.use('/api/earmark/allTransactionsByCategory', validateApiKey, allTransactionsByCategory);
 app.use('/api/earmark/recurring', validateApiKey, recurring);
-app.use('/api/earmark/dashboard', /*validateApiKey,*/ earmark_dashboard);
+app.use('/api/earmark/dashboard', validateApiKey, earmark_dashboard);
 app.use('/api/earmark/visuals', validateApiKey, earmark_visuals);
 app.use('/api/earmark/getDynamicTransactions', validateApiKey, earmark_getDynamicTransactions);
+app.use('/api/earmark/getAccountDetails', validateApiKey, getAccountDetails);
+app.use('/api/earmark/setAccountDetails', validateApiKey, setAccountDetails);
+
 // firebase routes
 const firestore = require('./firebase/firestore');
 

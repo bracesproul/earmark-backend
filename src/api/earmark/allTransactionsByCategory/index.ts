@@ -1,8 +1,7 @@
 /* eslint-disable */
 import dotenv from 'dotenv';
 dotenv.config();
-const { getAccessTokensTransactions } = require('../../../lib/firebase/firestore');
-const { getAccessTokens } = require('../../../services/db');
+const { getAccessTokensTransactions, getAccessTokens } = require('../../../lib/firebase/firestore');
 const express = require('express');
 const router = express.Router();
 

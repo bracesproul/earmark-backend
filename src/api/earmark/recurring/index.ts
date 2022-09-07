@@ -10,7 +10,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 // @ts-ignore
 const parseNumbers = require('../../../lib/parseNumbers');
-const { getAccessTokens } = require('../../../services/db');
+const { getAccessTokens } = require('../../../lib/firebase/firestore');
 const express = require('express');
 const moment = require('moment');
 const router = express.Router();

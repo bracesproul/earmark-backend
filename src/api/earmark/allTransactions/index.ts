@@ -5,8 +5,7 @@ import moment from 'moment';
 
 dotenv.config();
 const globalVars = require('../../../lib/globalVars');
-const updateFirestore = require('../../../lib/firebase/firestore/');
-const { getAccessTokens } = require('../../../services/db');
+const { getAccessTokens, getAccessTokensTransactions } = require('../../../lib/firebase/firestore/');
 const express = require('express');
 const router = express.Router();
 
@@ -207,7 +206,7 @@ router.get('/', async (req: any, res: any, next: any) => {
         let categoryList = new Array;
         let accountMetadata = new Array;
         let accounts = new Array;
-        const accessTokens = await updateFirestore.getAccessTokensTransactions(user_id);
+        const accessTokens = await getAccessTokensTransactions(user_id);
     
         for (let i = 0; i < accessTokens.length; i++) {
             try {

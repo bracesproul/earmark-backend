@@ -5,9 +5,8 @@ export {};
 const express = require('express');
 const router = express.Router();
 const globalVars = require('../../../lib/globalVars');
-const updateFirestore = require('../../../lib/firebase/firestore/index');
-const { getAccessTokens } = require('../../../services/db');
-const { 
+const { getAccessTokens } = require('../../../lib/firebase/firestore');
+const {
     Configuration, 
     PlaidApi, 
     PlaidEnvironments,
