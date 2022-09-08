@@ -427,52 +427,7 @@ const findAccountsWithinBanksAndStore = (ins_id: string, account: any, instituti
 const accountDetails = async (insSearchResponse: any, data: any, ins_id: string) => {
     const institution_name = insSearchResponse.data.institution.name;
     let accountDetails: any = new Array();
-    /*
-    const account = data.accounts
 
-
-    data.accounts.forEach((account: any) => {
-        const parseAccounts = () => {
-            if (accountDetails.length === 0) {
-                accountDetails.push({
-                    institution: institution_name,
-                    ins_id: ins_id,
-                    accounts: [{
-                        accountId: account.account_id,
-                        balance: parseNumbers(account.balances.available),
-                        name: account.name,
-                        subtype: account.subtype,
-                        ins_id: ins_id,
-                        institution_name_normal: institution_name,
-                        accountNumber: 0,
-                        institutionName: institution_name.split(' ').join('_'),
-                    }]
-                });
-                return;
-            };
-        };
-        const matchAccountsToBanksAndStore = () => {
-            accountDetails.forEach((accountDetail: any) => {
-                if (accountDetail.ins_id === ins_id) {
-                    accountDetail.accounts.push({
-                        accountId: account.account_id,
-                        balance: parseNumbers(account.balances.available),
-                        name: account.name,
-                        subtype: account.subtype,
-                        ins_id: ins_id,
-                        institution_name_normal: institution_name,
-                        accountNumber: 0,
-                        institutionName: institution_name.split(' ').join('_'),
-                    });
-                }
-            });
-        };
-        parseAccounts();
-        matchAccountsToBanksAndStore();
-    });
-
-
-    */
     data.accounts.forEach((account: any) => {
         if (accountDetails.length === 0) {
             accountDetails.push({
