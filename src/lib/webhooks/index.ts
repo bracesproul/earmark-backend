@@ -20,7 +20,9 @@ function sendWebhook(user_email: string, user_id: string) {
         username: 'Earmark Bot',
         content: `<@479069058864775180>`,
         embeds: [embed],
-    }).then(() => {console.log('Webhook sent!')});
+    })
+        .then(() => console.log('Webhook sent!'))
+        .catch((error:any) => console.error(error));
 }
 
 module.exports = {sendWebhook};
