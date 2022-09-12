@@ -136,12 +136,12 @@ const getAccountIdsRecurring = async (user_id: string) => {
     };
 };
 
-const getAccessTokensInstitution = async (user_id: string, params: any) => {
-    const parsedObject = JSON.parse(params);
-    const { institution_id } = parsedObject;
+const getAccessTokensInstitution = async (user_id: string, page_id: any) => {
+/*    const parsedObject = JSON.parse(params);
+    const { page_id } = parsedObject;*/
     try {
         let accessTokens = new String;
-        const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("institution_id", "==", institution_id);
+        const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("institution_id", "==", page_id);
         const snapshot = await accessTokensRef.get();
         if (snapshot.empty) {
             console.log('No matching documents.');
@@ -158,6 +158,32 @@ const getAccessTokensInstitution = async (user_id: string, params: any) => {
         return error;
     };
 };
+
+const getAccessTokensDynamicTxns = async (user_id: string, page_id: any) => {
+    /*    const parsedObject = JSON.parse(params);
+        const { page_id } = parsedObject;*/
+    try {
+        let accessTokens:any = [];
+        const accessTokensRef = adminDb.collection('users').doc(user_id).collection('access_tokens').where("institution_id", "==", page_id);
+        const snapshot = await accessTokensRef.get();
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+            return;
+        }
+        snapshot.forEach((doc:any) => {
+            accessTokens.push(doc.data());
+        });
+        console.log('accessTokens', accessTokens);
+        Promise.resolve(accessTokens);
+        return accessTokens;
+    } catch (error) {
+        console.error(error);
+        Promise.reject(error);
+        return error;
+    };
+};
+
+
 
 const addAccessTokens = async (user_id: string, params: any) => {
     const { access_token, item_id, institution_id, available_products, account_data, account_types, account_ids, institution_name } = params;
@@ -636,6 +662,7 @@ interface IFirestore {
     updateAccountProfileDetails: (user_id: string, params: any) => Promise<void>;
     updateAccountSecurityDetails: (user_id: string, params: any) => Promise<void>;
     updateUserProfileFirebase: (user_id: string, params: any) => Promise<any>;
+    getAccessTokensDynamicTxns: (user_id: string, params: any) => Promise<void>;
 }
 
 export {};
@@ -665,5 +692,6 @@ module.exports = {
     getAccountSecurityDetails,
     updateAccountProfileDetails,
     updateAccountSecurityDetails,
-    updateUserProfileFirebase
+    updateUserProfileFirebase,
+    getAccessTokensDynamicTxns
 };

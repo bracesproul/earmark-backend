@@ -10,7 +10,8 @@ router.post('/', async (req: any, res: any, next: any) => {
     const user_email = req.query.user_email;
     const user_id = req.query.user_id;
     try {
-        sendWebhook(user_email, user_id);
+        console.log(req)
+        sendWebhook(req.body.user_email, req.body.user_id);
         await res.status(200)
         await res.send('success');
         await res.end();

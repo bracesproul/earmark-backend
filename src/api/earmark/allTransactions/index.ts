@@ -69,6 +69,24 @@ const getCategories = (accounts:any, transactionList:any) => {
     })
 }
 
+function addDollarSignToAmount(num:number | string) {
+    let newNumber;
+    if (typeof num === 'number') {
+        newNumber = num.toString();
+    }
+    if (newNumber === '0') {
+        newNumber = parseInt(newNumber);
+        return '$' + newNumber.toFixed(2);
+    }
+    if (newNumber.includes('-')) {
+        newNumber = newNumber.replace('-', '');
+        newNumber = parseInt(newNumber);
+        return '-$' + newNumber.toFixed(2);
+    }
+    newNumber = parseInt(newNumber);
+    return '$' + newNumber.toFixed(2);
+}
+
 const getTransactions = async (transactions:any, accounts:any) => {
     let transactionList:any = [];
     let categories:any = [];
@@ -99,7 +117,7 @@ const getTransactions = async (transactions:any, accounts:any) => {
                             id: transaction.transaction_id,
                             name: transaction.name,
                             date: moment(transaction.date).format('MM/DD/YYYY'),
-                            amount: transaction.amount,
+                            amount: addDollarSignToAmount(transaction.amount),
                             category: formatCategoryName(transaction.personal_finance_category.primary)
                         })
                     }
@@ -127,6 +145,7 @@ router.get('/', async (req: any, res: any, next: any) => {
     let finalStatus;
 
     if (queryType === 'datagrid') {
+        console.log('queryType is datagrid');
         let full_response;
         let dataGridTransactions = new Array;
         let transactionMetadata = new Array;
@@ -147,8 +166,6 @@ router.get('/', async (req: any, res: any, next: any) => {
 
                 await getTransactions(data.transactions, data.accounts);
 
-                console.log(data);
-
                 full_response = data;
 
                 data.transactions.forEach((transaction:any) => {
@@ -157,7 +174,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         id: transaction.transaction_id, 
                         col1: transaction.name, 
                         col2: transaction.authorized_date, 
-                        col3: transaction.amount, 
+                        col3: transaction.amount,
                         col4: transaction.category[0]
                     });
     
@@ -173,20 +190,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                 });
                 const uniqueChars = [...new Set(categoriesAvail)];
 
-/*                finalResponse = {
-                    dataGridTransactions: dataGridTransactions,
-                    transactionMetadata: transactionMetadata,
-                    categoriesAvail: uniqueChars,
-                    statusCode: 200,
-                    statusMessage: "Success",
-                    metaData: {
-                        requestTime: new Date().toLocaleString(),
-                        nextApiUrl: "/api/earmark/allTransactions",
-                        backendApiUrl: "/api/allTransactions",
-                        method: "GET",
-                        responses: full_response
-                    },
-                };*/
                 finalResponse.push({
                     institution: data.item.institution_id,
                     data: {
@@ -194,6 +197,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         categories: (await getTransactions(data.transactions, data.accounts)).categories,
                     }
                 })
+                console.log('finalResponse', finalResponse);
                 finalStatus = 200;
             } catch (error) {
                 console.error(error);
@@ -236,6 +240,8 @@ router.get('/', async (req: any, res: any, next: any) => {
                         name: transaction.name,
                     }});
                 });
+
+
     
                 accounts.map(async (account:any) => {
                     data.transactions.map((transaction:any) => {
@@ -244,7 +250,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                                 id: transaction.transaction_id, 
                                 col1: transaction.name, 
                                 col2: transaction.authorized_date, 
-                                col3: transaction.amount, 
+                                col3: transaction.amount,
                                 col4: transaction.category[0],
                             });
                         }
