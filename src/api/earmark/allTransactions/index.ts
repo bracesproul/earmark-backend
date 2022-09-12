@@ -174,7 +174,7 @@ router.get('/', async (req: any, res: any, next: any) => {
                         id: transaction.transaction_id, 
                         col1: transaction.name, 
                         col2: transaction.authorized_date, 
-                        col3: transaction.amount,
+                        col3: addDollarSignToAmount(transaction.amount),
                         col4: transaction.category[0]
                     });
     
