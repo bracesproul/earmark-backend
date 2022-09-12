@@ -43,9 +43,7 @@ router.get('/', async (req: any, res: any) => {
     // end firebase query code
 
     try {
-        console.log('inside try', accessTokens);
         for (let i = 0; i < accessTokens.length; i++) {
-            console.log(accessTokens[i]);
             const request: InstanceType<typeof AuthGetRequest> = {
                 access_token: accessTokens[i],
             };

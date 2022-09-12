@@ -38,7 +38,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     let finalResponse;
     let finalStatus = 400;
     for (let i = 0; i < accessToken.length; i++) {
-        console.log('inside for loop, loop:', i+1, 'access token:', accessToken[i])
         try {
             // @ts-ignore
             const request: TransactionsGetRequest = {

@@ -118,7 +118,6 @@ function filterDuplicateTransactionsByMonth(sortedByNameTransactions:ITransactio
             txn.transactions.forEach((transaction2:any) => {
                 if (transaction2.id === transaction1.id) return;
                 const secondDate = moment(transaction2.date, 'YYYY-MM-DD');
-                console.log(secondDate, firstDateLowerBound, firstDateUpperBound);
                 if (secondDate.isBetween(firstDateLowerBound, firstDateUpperBound) && transaction2.amount >= firstAmountLowerBound && transaction2.amount <= firstAmountUpperBound) {
                     if (!transactionsChecked.includes(transaction2.id)) {
                         console.log('does not include')

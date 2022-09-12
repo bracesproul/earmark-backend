@@ -433,7 +433,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                 const spendingResponse = await client.transactionsGet(spendingRequest);
                 const spendingTransactions = spendingResponse.data.transactions;
                 console.log('final below');
-                console.log(await spendingOverviewFunction(spendingTransactions))
                 finalResponse = {
                     spendingOverview: await spendingOverviewFunction(spendingTransactions),
                     statusCode: 200,

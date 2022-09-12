@@ -43,7 +43,6 @@ const updateUser = async (user_id: string, params: any) => {
     try {
         const userRef = adminDb.collection('users').doc(user_id);
         const res = await userRef.set(data, { merge: true });
-        console.log('doc successfully written', await res);
     } catch (error) {
         console.error(error);
         Promise.reject(error);
@@ -173,7 +172,6 @@ const getAccessTokensDynamicTxns = async (user_id: string, page_id: any) => {
         snapshot.forEach((doc:any) => {
             accessTokens.push(doc.data());
         });
-        console.log('accessTokens', accessTokens);
         Promise.resolve(accessTokens);
         return accessTokens;
     } catch (error) {
@@ -365,7 +363,6 @@ const updateUserSecurity = async (user_id: string, params: any) => {
         })
         .then((userRecord:any) => {
             // See the UserRecord reference doc for the contents of userRecord.
-            console.log('Successfully updated user', userRecord.toJSON());
         })
         .catch((error:any) => {
             console.error('Error updating user:', error);
@@ -593,7 +590,6 @@ function updateUserProfileFirebase(user_id: string, params: any): any {
             })
             .then((userRecord:any) => {
                 // See the UserRecord reference doc for the contents of userRecord.
-                console.log('Successfully updated user', userRecord.toJSON());
                 res.status = 'success';
             })
             .catch((error:any) => {
@@ -612,7 +608,6 @@ function updateUserProfileFirebase(user_id: string, params: any): any {
             })
             .then((userRecord:any) => {
                 // See the UserRecord reference doc for the contents of userRecord.
-                console.log('Successfully updated user', userRecord.toJSON());
                 res.status = 'success';
             })
             .catch((error:any) => {

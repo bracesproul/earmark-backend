@@ -197,7 +197,6 @@ router.get('/', async (req: any, res: any, next: any) => {
                         categories: (await getTransactions(data.transactions, data.accounts)).categories,
                     }
                 })
-                console.log('finalResponse', finalResponse);
                 finalStatus = 200;
             } catch (error) {
                 console.error(error);

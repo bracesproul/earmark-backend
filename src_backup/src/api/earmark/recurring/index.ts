@@ -143,7 +143,6 @@ router.get('/', async (req: any, res: any, next: any) => {
     let finalStatus;
 
     const accessTokens = await getAccessTokensTransactions(user_id);
-    console.log('access tokens length', accessTokens.length)
     for (let i = 0; i < accessTokens.length; i++) {
         try {
             /* @ts-ignore */
