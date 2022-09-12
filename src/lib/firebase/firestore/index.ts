@@ -641,13 +641,15 @@ function accountSetupFinished(user_id: string) {
 }
 
 async function checkAccountSetupFinished(user_id:string) {
-    const tokensRef = adminDb.collection('users').doc(user_id).collection('categories');
-    const snapshot = await tokensRef.get();
-    let isFinished = false;
-    snapshot.forEach((doc:any) => {
-        doc.data() ? isFinished = true : isFinished = false;
-    });
-    return isFinished;
+    try {
+        const tokensRef = adminDb.collection('users').doc(user_id).collection('categories');
+        const snapshot = await tokensRef.get();
+        return !snapshot.empty;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+
 }
 
 const testFunc = async (user_id: string, params: any) => {
