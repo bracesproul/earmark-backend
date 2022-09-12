@@ -128,6 +128,7 @@ const earmark_getDynamicTransactions = require('./earmark/getDynamicTransactions
 const getAccountDetails = require('./earmark/getAccountDetails');
 const setAccountDetails = require('./earmark/setAccountDetails');
 const userLogin = require('./earmark/login');
+const checkAccountSetup = require('./earmark/checkAccountSetup');
 
 app.use('/api/earmark/allAccountInfo', validateApiKey, earmark_allAccountInfo);
 app.use('/api/earmark/allTransactions', validateApiKey, earmark_allTransactions);
@@ -142,6 +143,7 @@ app.use('/api/earmark/getDynamicTransactions', validateApiKey, earmark_getDynami
 app.use('/api/earmark/getAccountDetails', validateApiKey, getAccountDetails);
 app.use('/api/earmark/setAccountDetails', validateApiKey, setAccountDetails);
 app.use('/api/earmark/login', validateApiKey, userLogin);
+app.use('/api/earmark/checkAccountSetup', validateApiKey, checkAccountSetup);
 
 // firebase routes
 const firestore = require('./firebase/firestore');

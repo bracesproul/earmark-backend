@@ -11,7 +11,6 @@ router.post('/', async (req: any, res: any, next: any) => {
     const data = req.query.data;
     const settingsType = req.query.settingsType;
 
-    console.log('data', data);
 
     try {
         switch (settingsType) {

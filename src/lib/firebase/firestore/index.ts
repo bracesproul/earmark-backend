@@ -628,6 +628,28 @@ function updateUserProfileFirebase(user_id: string, params: any): any {
     return res;
 }
 
+function accountSetupFinished(user_id: string) {
+    return new Promise((resolve, reject) => {
+        const userRef = adminDb.collection('users').doc(user_id);
+
+        userRef.set({ account_setup_finished: true }, { merge: true }).then(() => {
+            resolve('success');
+        }).catch((error: any) => {
+            reject(error);
+        });
+    });
+}
+
+async function checkAccountSetupFinished(user_id:string) {
+    const tokensRef = adminDb.collection('users').doc(user_id).collection('categories');
+    const snapshot = await tokensRef.get();
+    let isFinished = false;
+    snapshot.forEach((doc:any) => {
+        doc.data() ? isFinished = true : isFinished = false;
+    });
+    return isFinished;
+}
+
 const testFunc = async (user_id: string, params: any) => {
     const object = JSON.parse(params);
     const { param1, param2 } = object;
@@ -663,6 +685,8 @@ interface IFirestore {
     updateAccountSecurityDetails: (user_id: string, params: any) => Promise<void>;
     updateUserProfileFirebase: (user_id: string, params: any) => Promise<any>;
     getAccessTokensDynamicTxns: (user_id: string, params: any) => Promise<void>;
+    accountSetupFinished: (user_id: string) => Promise<void>;
+    checkAccountSetupFinished: (user_id: string) => Promise<void>;
 }
 
 export {};
@@ -693,5 +717,7 @@ module.exports = {
     updateAccountProfileDetails,
     updateAccountSecurityDetails,
     updateUserProfileFirebase,
-    getAccessTokensDynamicTxns
+    getAccessTokensDynamicTxns,
+    accountSetupFinished,
+    checkAccountSetupFinished
 };
